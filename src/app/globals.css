@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0404;
+  --bg-hero: #120606;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.09);
+  --text: #F2F2F3;
+}
+
+* { scrollbar-width: thin; scrollbar-color: #2A2A30 transparent; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Elvara grid — vertical hairlines + header/bottom horizontals are done via borders */
+.grid-lines::before,
+.grid-lines::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+  pointer-events: none;
+  z-index: 2;
+}
+.grid-lines::before { left: 6%; }
+.grid-lines::after { right: 6%; }
+@media (min-width: 768px) {
+  .grid-lines::before { left: 4.5%; }
+  .grid-lines::after { right: 4.5%; }
+}
+@media (min-width: 1200px) {
+  .grid-lines::before { left: 7.2%; }
+  .grid-lines::after { right: 7.2%; }
+}
+
+.hero-display {
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.85;
+  color: #FFFFFF;
+}
+@media (min-width: 1024px) {
+  .hero-display {
+    background: linear-gradient(to bottom, #FFFFFF 0%, #FFFFFF 58%, rgba(255,255,255,0.82) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2A2A30; border-radius: 999px; }
+
+/* lenis */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
