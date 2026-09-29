@@ -1,14 +1,15 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
   { n: "01", label: "Tools", href: "#tools" },
-  { n: "02", label: "Projects", href: "#projects" },
-  { n: "03", label: "Achievements", href: "#achievements" },
-  { n: "04", label: "About", href: "#about" },
+  { n: "02", label: "About", href: "#about" },
+  { n: "03", label: "Services", href: "#services" },
+  { n: "04", label: "Contact", href: "#contact" },
 ];
 
 export default function Home() {
@@ -17,32 +18,95 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
+    try {
+      if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
+    } catch {}
+    const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
     let lenis;
+    let rafId = 0;
     import("lenis").then(({ default: Lenis }) => {
       lenis = new Lenis({
-        duration: 1.1,
+        duration: 1.8,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        wheelMultiplier: 0.55,
+        touchMultiplier: 0.85,
+        smoothWheel: true,
+        gestureOrientation: "vertical",
+        infinite: false,
+        lerp: 0.075,
       });
+      try { window.lenis = lenis; } catch {}
       function raf(time) {
         lenis.raf(time);
-        requestAnimationFrame(raf);
+        rafId = requestAnimationFrame(raf);
       }
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     });
-    return () => lenis?.destroy();
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      lenis?.destroy();
+      try { if (window.lenis === lenis) delete window.lenis; } catch {}
+    };
   }, []);
 
-  // Intro sequence: enter 700ms → hold 1800ms → exit 800ms → done (tetap -translate-y-full, tidak snap balik)
   useEffect(() => {
-    const HOLD = 1800;
-    const ENTER = 700;
+    let raf = 0;
+    const save = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        try { sessionStorage.setItem("landing-scroll-y", String(window.scrollY)); } catch {}
+      });
+    };
+    window.addEventListener("scroll", save, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", save);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (showIntro) return;
+    try {
+      const hash = window.location.hash;
+      if (hash) {
+        sessionStorage.removeItem("landing-restore");
+        return;
+      }
+      const saved = parseInt(sessionStorage.getItem("landing-scroll-y") || "0", 10);
+      if (saved > 0 && window.scrollY < saved - 4) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            try {
+              const lenis = window.lenis;
+              if (lenis?.scrollTo) lenis.scrollTo(saved, { immediate: true });
+              else window.scrollTo(0, saved);
+            } catch {
+              window.scrollTo(0, saved);
+            }
+          });
+        });
+      }
+      sessionStorage.removeItem("landing-restore");
+    } catch {}
+  }, [showIntro]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("skipIntro")) {
+      setIntroPhase("done");
+      setShowIntro(false);
+      try { sessionStorage.removeItem("skipIntro"); } catch {}
+      return;
+    }
+    const HOLD = 2000;
+    const ENTER = 800;
     const EXIT = 800;
     const enterTimer = setTimeout(() => setIntroPhase("hold"), ENTER);
     const holdTimer = setTimeout(() => setIntroPhase("exit"), ENTER + HOLD);
     const doneTimer = setTimeout(() => {
       setIntroPhase("done");
     }, ENTER + HOLD + EXIT);
-    // unmount setelah exit selesai, tanpa balik ke translate-y-0
     const hideTimer = setTimeout(() => setShowIntro(false), ENTER + HOLD + EXIT + 50);
     return () => {
       clearTimeout(enterTimer);
@@ -52,7 +116,6 @@ export default function Home() {
     };
   }, []);
 
-  // lock scroll when menu open or intro visible
   useEffect(() => {
     const locked = menuOpen || showIntro;
     document.body.style.overflow = locked ? "hidden" : "";
@@ -60,8 +123,8 @@ export default function Home() {
   }, [menuOpen, showIntro]);
 
   return (
-    <main className="relative min-h-screen bg-[#0a0404] overflow-x-hidden">
-      {/* Intro - web dibuka → full hitam → nama muncul → full hitam slide ke atas hilang → selesai */}
+    <main className="relative min-h-screen bg-[#0a0404] overflow-x-clip [overscroll-behavior:none]">
+      {}
       {showIntro && (
         <div
           className={`fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden transition-transform duration-[800ms] ${introPhase === "exit" || introPhase === "done" ? "-translate-y-full" : "translate-y-0"}`}
@@ -71,8 +134,8 @@ export default function Home() {
           <div className="overflow-visible px-2 py-3 -my-3">
             <div className="overflow-hidden px-1 py-2 -my-2">
               <p
-                className={`text-[42px] sm:text-[56px] lg:text-[72px] font-black tracking-[-0.04em] text-white leading-none select-none transition-all duration-[700ms] ${introPhase === "enter" ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}
-                style={{ transitionTimingFunction: "cubic-bezier(0.22,1,0.36,1)" }}
+                className={`text-[42px] sm:text-[56px] lg:text-[72px] font-black tracking-[-0.04em] text-white leading-none select-none transition-all duration-[800ms] will-change-transform ${introPhase === "enter" ? "translate-y-[110%] opacity-0" : "translate-y-0 opacity-100"}`}
+                style={{ transitionTimingFunction: "cubic-bezier(0.76,0,0.24,1)" }}
               >
                 RIZAL<span className="align-super text-[0.28em] font-light ml-[0.06em] relative -top-[0.05em] inline-block">®</span>
               </p>
@@ -81,17 +144,17 @@ export default function Home() {
         </div>
       )}
 
-      {/* Header - hanya logo */}
-      <header className="fixed top-0 inset-x-0 z-50 border-b border-white/[0.06] bg-[#0a0404]/60 backdrop-blur-[12px]">
-        <div className="mx-auto max-w-[1600px] px-[6%] md:px-[4.5%] lg:px-[7.2%] h-[64px] flex items-center justify-between">
+      {}
+      <header className="fixed top-0 inset-x-0 z-50 border-b border-white/[0.06] bg-[#0a0404]/60 backdrop-blur-[12px] isolate [transform:translateZ(0)] [backface-visibility:hidden]">
+        <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] h-[64px] flex items-center justify-between">
           <a href="#" className="flex items-center group" aria-label="Home">
-            <span className="relative w-[34px] h-[34px] rounded-full overflow-hidden bg-white/[0.06] border border-white/10 flex items-center justify-center">
+            <span className="relative w-[38px] h-[38px] rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center shrink-0 overflow-visible p-[7px]">
               <Image
                 src="/images/logo-r.webp"
                 alt="R logo"
-                width={32}
-                height={32}
-                className="object-contain p-[4px]"
+                width={24}
+                height={24}
+                className="object-contain w-[24px] h-[24px] shrink-0"
                 priority
               />
             </span>
@@ -112,11 +175,11 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Mobile menu - CSS only, no framer-motion needed */}
+      {}
       <div
         className={`fixed inset-0 z-40 bg-[#080405]/95 backdrop-blur-xl pt-[64px] transition-opacity duration-300 ${menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
       >
-        <div className="mx-auto max-w-[1600px] px-[6%] md:px-[4.5%] lg:px-[7.2%] py-10">
+        <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] py-10">
           {navItems.map((item) => (
             <a
               key={item.n}
@@ -124,7 +187,7 @@ export default function Home() {
               onClick={() => setMenuOpen(false)}
               className="flex items-baseline gap-4 py-4 border-b border-white/5 text-[30px] tracking-[-0.03em] font-light hover:text-white transition-colors group"
             >
-              <span className="text-[11px] font-mono text-white/35 tracking-[0.08em]">({item.n})</span>
+              <span className="text-[11px] font-mono text-[#F0F3FF]/75 tracking-[0.08em]">({item.n})</span>
               <span className="group-hover:translate-x-2 transition-transform duration-300">{item.label}</span>
             </a>
           ))}
@@ -134,9 +197,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* HERO - faithful to https://elvara.framer.website */}
+      {}
+      <div className="relative z-10 bg-[#0a0404] shadow-[0_32px_100px_rgba(0,0,0,0.65)]">
+      {}
       <section className="relative h-[100svh] min-h-[600px] lg:min-h-[640px] bg-[#0e0505] overflow-hidden grid-lines flex flex-col">
-        {/* image layer - right half, behind grid + text, like Elvara */}
+        {}
         <div className="absolute inset-0 lg:left-auto lg:w-[52%] lg:right-0 top-0 bottom-0">
           <Image
             src="/images/hero.webp"
@@ -146,10 +211,10 @@ export default function Home() {
             className="object-cover object-[50%_22%] lg:object-[50%_18%] brightness-[1.06] contrast-[1.02]"
             sizes="(max-width: 1024px) 100vw, 52vw"
           />
-          {/* blend image - shade tipis sampai garis biru, muka clean */}
+          {}
           <div className="absolute inset-0 lg:hidden" style={{ background: `linear-gradient(to top, rgba(10,4,4,0.28) 0%, transparent 18%)` }} />
           <div className="absolute inset-0 hidden lg:block" style={{ background: `linear-gradient(to top, rgba(10,4,4,0.14) 0%, transparent 14%)` }} />
-          {/* left edge fade - mobile lebih lebar sedikit, desktop lebih sempit agar tidak sampai muka (garis biru) */}
+          {}
           <div
             className="absolute inset-0 lg:hidden"
             style={{
@@ -164,15 +229,15 @@ export default function Home() {
           />
         </div>
 
-        {/* soft vignette + texture like Elvara */}
+        {}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_35%_45%,rgba(255,255,255,0.04),transparent_58%)] z-[1]" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-overlay z-[1]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
 
-        {/* content - sits above image, grid-aligned */}
-        <div className="relative z-10 flex-1 flex flex-col mx-auto w-full max-w-[1600px] px-[6%] md:px-[4.5%] lg:px-[7.2%] pt-[64px]">
-          {/* top block: eyebrow + huge display */}
+        {}
+        <div className="relative z-10 flex-1 flex flex-col mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-[64px]">
+          {}
           <div className="pt-10 lg:pt-14">
-            <div className="inline-flex items-center gap-3 text-[10px] sm:text-[11px] tracking-[0.16em] uppercase font-mono text-white/60">
+            <div className="inline-flex items-center gap-3 text-[12px] sm:text-[11px] tracking-[0.16em] uppercase font-mono text-white/60">
               <span>Personal Portfolio</span>
               <span className="h-[1px] w-10 bg-white/25 hidden sm:block" />
               <span className="hidden sm:block w-1 h-1 rounded-full bg-white/60" />
@@ -182,15 +247,15 @@ export default function Home() {
               Rizal<span className="align-super text-[0.36em] ml-[0.04em] font-light tracking-[-0.02em]">®</span>
             </h1>
 
-            {/* hairline under display like Elvara subtle divider */}
+            {}
             <div className="mt-4 lg:mt-6 h-[1px] w-full max-w-[560px] bg-gradient-to-r from-white/[0.09] via-white/[0.05] to-transparent" />
           </div>
 
-          {/* bottom row - pushed to bottom via flex-1 spacer */}
+          {}
           <div className="flex-1" />
 
           <div className="pb-8 lg:pb-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
-            {/* left tagline - Building Brands equivalent */}
+            {}
             <div className="max-w-[560px]">
               <h2 className="text-[22px] sm:text-[26px] lg:text-[34px] leading-[1.12] tracking-[-0.03em] font-light">
                 <span className="text-white">Crafting Web Experiences</span>
@@ -216,13 +281,13 @@ export default function Home() {
               </div>
             </div>
 
-            {/* right nav list - visible on desktop like Elvara */}
+            {}
             <div className="hidden lg:flex flex-col items-end gap-[6px] text-right shrink-0 pb-1">
               {navItems.map((item) => (
                 <a
                   key={item.n}
                   href={item.href}
-                  className="group flex items-center gap-2 text-[11px] font-mono tracking-[0.08em] text-white/50 hover:text-white transition-colors"
+                  className="group flex items-center gap-2 text-[11px] font-mono tracking-[0.08em] text-[#F0F3FF]/82 hover:text-white transition-colors"
                 >
                   <span className="group-hover:-translate-x-1 transition-transform duration-300">
                     ({item.n}) {item.label}
@@ -230,31 +295,125 @@ export default function Home() {
                 </a>
               ))}
               <div className="mt-2 h-[1px] w-20 bg-white/10" />
-              <span className="text-[10px] tracking-[0.14em] text-white/25 font-mono">©2026 - PENS</span>
+              <span className="text-[12px] tracking-[0.14em] text-[#F0F3FF]/60 font-mono">©2026 - PENS</span>
             </div>
           </div>
         </div>
 
-        {/* bottom hairline */}
+        {}
         <div className="absolute bottom-0 inset-x-0 h-[1px] bg-white/[0.06] z-10" />
       </section>
 
-      {/* Latest Project - after hero, style ref https://createstudio.framer.media/ */}
+      {}
       <LatestProject />
 
-      {/* What Can I Do - ref https://nakula.framer.website HOW WE CAN HELP (hardcode, no DB) */}
+      {}
+      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
+
+      {}
+      <WhoAmI />
+
+      {}
+      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
+
+      {}
+      <ToolsMarquee />
+
+      {}
+      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
+
+      {}
       <WhatCanIDo />
 
-      {/* Sections */}
-      <Section id="tools" k="01" title="Tools" desc="12 tools - from VSCode to Railway." />
-      <Section id="projects" k="02" title="Projects" desc="4 web projects (2 kolaborasi + 2 personal) from Supabase." dark />
-      <Section id="achievements" k="03" title="Achievements" desc="9 akademik + 11 non-akademik - medals, NLC, SIC6." />
-      <Section id="about" k="04" title="About" desc="Informatics PENS - crafting clean, fast, dark-mode first experiences." dark />
+      {/* LOCKED PACKAGE: Contact + RevealFooter — do not separate or edit independently without approval */}
+      <section id="contact" className="relative bg-[#0a0404] border-y border-white/[0.06]">
+        <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] py-8 lg:py-10 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
+          <div className="text-center">
+            <p className="text-[11px] lg:text-[12px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Email Address</p>
+            <a href="mailto:rizalmaulanaairlangga456@gmail.com" className="mt-2 inline-block text-[15px] lg:text-[16px] font-medium tracking-[-0.01em] text-white hover:text-white/80 transition-colors break-all">
+              rizalmaulanaairlangga456@gmail.com
+            </a>
+          </div>
+          <div className="text-center">
+            <p className="text-[11px] lg:text-[12px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Social Links</p>
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <a href="https://www.instagram.com/a_rizal_i/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="opacity-90"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.6"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" strokeWidth="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
+              </a>
+              <a href="https://www.linkedin.com/in/rizal-maulana-airlangga-072b21346/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+              </a>
+              <a href="mailto:rizalmaulanaairlangga456@gmail.com" aria-label="Email" className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 6.5C4 5.67 4.67 5 5.5 5H18.5C19.33 5 20 5.67 20 6.5V17.5C20 18.33 19.33 19 18.5 19H5.5C4.67 19 4 18.33 4 17.5V6.5Z" stroke="currentColor" strokeWidth="1.5"/><path d="M5 7L12 12.5L19 7" stroke="currentColor" strokeWidth="1.5"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+      </div>
 
-      <footer className="border-t border-white/5 py-8 text-center text-xs font-mono tracking-[0.12em] text-white/30">
-        © 2026 Rizal Maulana - Built with Next.js - Motion - Supabase - Tailwind
-      </footer>
+      {}
+      <RevealFooter />
     </main>
+  );
+}
+
+// LOCKED: RevealFooter is paired with Contact — keep together
+function RevealFooter() {
+  const innerRef = useRef(null);
+  useEffect(() => {
+    const inner = innerRef.current;
+    if (!inner) return;
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const docH = document.documentElement.scrollHeight;
+        const vh = window.innerHeight;
+        const fh =  Math.min(vh * 0.42, 560);
+        const start = docH - vh - fh;
+        const end = docH - vh;
+        const y = window.scrollY;
+        const progress = Math.min(1, Math.max(0, (y - start) / Math.max(1, end - start)));
+        const off = (1 - progress) * 92;
+        inner.style.transform = `translate3d(0,${off}px,0)`;
+        inner.style.willChange = progress < 0.99 ? "transform" : "auto";
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+  return (
+    <>
+      {}
+      <div className="h-[42vh] min-h-[280px] pointer-events-none" aria-hidden />
+      <footer className="fixed bottom-0 inset-x-0 z-0 overflow-hidden flex flex-col h-[42vh] min-h-[280px] border-t border-black/10" style={{ backgroundColor: "#C2BFB7", backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E")` }}>
+        <div ref={innerRef} className="flex-1 relative flex flex-col justify-end px-[1.6%] lg:px-[1%] pb-3 lg:pb-4 pt-6 lg:pt-8 will-change-transform" style={{ transform: "translate3d(0,92px,0)" }}>
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="hero-display text-[30vw] sm:text-[26vw] lg:text-[18vw] xl:text-[16vw] leading-[0.82] tracking-[-0.06em] select-none pointer-events-none !text-[#0a0404]" style={{ WebkitTextFillColor: "#0a0404", color: "#0a0404" }}>
+              RIZAL<span className="align-super text-[0.28em] font-light ml-[0.03em]">®</span>
+            </h2>
+            <div className="hidden sm:flex flex-col items-end justify-end pb-[1.2vw] lg:pb-[1vw] text-right leading-[0.88] tracking-[-0.04em] font-black text-[#0a0404] shrink-0">
+              <span className="text-[10vw] sm:text-[8vw] lg:text-[5.5vw] xl:text-[5vw]">Learning.</span>
+              <span className="text-[10vw] sm:text-[8vw] lg:text-[5.5vw] xl:text-[5vw]">Building.</span>
+              <span className="text-[10vw] sm:text-[8vw] lg:text-[5.5vw] xl:text-[5vw] text-[#0a0404]/80">Growing.</span>
+            </div>
+          </div>
+          <div className="sm:hidden mt-4 text-left leading-[0.9] tracking-[-0.03em] font-black text-[#0a0404]">
+            <span className="block text-[18vw]">Learning.</span>
+            <span className="block text-[18vw]">Building.</span>
+            <span className="block text-[18vw] text-[#0a0404]/80">Growing.</span>
+          </div>
+        </div>
+      </footer>
+    </>
   );
 }
 
@@ -281,13 +440,12 @@ function LatestProject() {
       });
   }, []);
 
-  // global fixed cursor - tidak terpotong di batas antar view (portal di luar card)
-  // FIX: scroll tanpa gerak cursor harus tetap update visibility + hover + activeLink
-  // root cause: mouseenter/mouseleave hanya fire saat pointer bergerak, tidak saat scroll
   useEffect(() => {
     const container = containerRef.current;
     const circle = cursorRef.current;
     if (!container || !circle) return;
+    const originalParent = circle.parentNode;
+    document.body.appendChild(circle);
     let raf = 0;
     let mx = 0, my = 0, cx = 0, cy = 0;
     let active = false;
@@ -346,7 +504,6 @@ function LatestProject() {
         active = inside;
         setCursorActive(inside);
       }
-      // detect link dan hover hanya jika inside
       if (inside) {
         const el = document.elementFromPoint(e.clientX, e.clientY);
         const card = el?.closest?.("[data-project-link]");
@@ -359,8 +516,6 @@ function LatestProject() {
       lastX = e.clientX;
       lastY = e.clientY;
       hasPointer = true;
-      // jika global move terjadi di luar container tapi container baru saja discroll masuk, tetap perlu check
-      // tidak perlu update mx/cx di sini (hanya lastX/Y untuk hit-test)
     };
     const onEnter = () => { active = true; setCursorActive(true); };
     const onLeave = () => { active = false; setCursorActive(false); };
@@ -379,25 +534,30 @@ function LatestProject() {
       window.removeEventListener("resize", onScroll);
       if (raf) cancelAnimationFrame(raf);
       if (scrollRaf) cancelAnimationFrame(scrollRaf);
+      try {
+        if (circle.parentNode === document.body) {
+          originalParent?.appendChild(circle);
+        }
+      } catch {}
     };
   }, [projects.length]);
 
   if (!projects.length) {
     return (
       <section className="relative bg-black border-y border-white/5 py-16 flex items-center justify-center">
-        <p className="text-xs font-mono tracking-[0.16em] text-white/30">LOADING LATEST PROJECTS...</p>
+        <p className="text-xs font-mono tracking-[0.16em] text-[#F0F3FF]/70">LOADING LATEST PROJECTS...</p>
       </section>
     );
   }
   return (
     <>
-      {/* fallback hover when scroll moves element under static pointer - mirrors group-hover */}
+      {}
       <style>{`[data-hovered] .project-overlay{background-color:rgba(0,0,0,0.30)!important}[data-hovered] .project-mobile-circle{opacity:1!important}`}</style>
       <div ref={containerRef} className="relative cursor-none">
         {projects.map((p) => (
           <ProjectCard key={p.id} project={p} />
         ))}
-        {/* global fixed orange circle - di luar card, tidak akan terpotong di sambungan */}
+        {}
         <div
           ref={cursorRef}
           onClick={() => activeLink && window.open(activeLink, "_blank")}
@@ -414,10 +574,10 @@ function LatestProject() {
 }
 
 function ProjectCard({ project }) {
+  const router = useRouter();
   const ref = useRef(null);
   const imgRef = useRef(null);
 
-  // zoom: belum kelihatan = 1.16 (zoom in), mulai peek di bawah → zoom out, sampai full view = 1.0 (100%)
   useEffect(() => {
     const el = ref.current;
     const img = imgRef.current;
@@ -425,31 +585,35 @@ function ProjectCard({ project }) {
     let raf = 0;
     let current = 1.16;
     let target = 1.16;
-    img.style.transform = `scale(${current})`;
-    img.style.willChange = "transform";
+    img.style.transform = `scale(${current}) translateZ(0)`;
+    img.style.backfaceVisibility = "hidden";
     const tick = () => {
       raf = 0;
-      current += (target - current) * 0.14;
-      img.style.transform = `scale(${current})`;
-      if (Math.abs(target - current) > 0.0004) {
+      current += (target - current) * 0.08;
+      img.style.transform = `scale(${current}) translateZ(0)`;
+      if (Math.abs(target - current) > 0.0006) {
         raf = requestAnimationFrame(tick);
+      } else {
+        img.style.willChange = "auto";
       }
     };
     const updateTarget = () => {
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
       const header = 64;
-      // 0 saat masih di bawah (rect.top==vh, sebelum kelihatan), 1 saat sudah pas di bawah header (rect.top==header) - posisi ideal Image1
-      // jadi tidak perlu 1 scroll lagi, sudah full 100% di posisi terakhir yang diinginkan
       const progress = Math.min(1, Math.max(0, (vh - rect.top) / (vh - header)));
       target = 1.16 - progress * 0.16;
-      if (!raf) raf = requestAnimationFrame(tick);
+      if (!raf) {
+        img.style.willChange = "transform";
+        raf = requestAnimationFrame(tick);
+      }
     };
     updateTarget();
     let ticking = false;
     const onScroll = () => {
       if (!ticking) {
         ticking = true;
+        img.style.willChange = "transform";
         requestAnimationFrame(() => {
           updateTarget();
           ticking = false;
@@ -469,18 +633,24 @@ function ProjectCard({ project }) {
   const frameworks = project.frameworks || [];
   const title = project.name;
   const subtitle = project.description ? project.description.replace(/\.$/, "").toUpperCase() : "WEB PROJECT";
-  const link = project.link_web || project.repo_link || "#";
+  const slug = project.slug || "";
+  const detailHref = slug ? `/work/${slug}` : (project.link_web || project.repo_link || "#");
   const img = project.foto_public_url;
 
   return (
     <section
       ref={ref}
-      data-project-link={link}
-      onClick={() => window.open(link, "_blank")}
-      className="relative w-full h-[82vh] min-h-[540px] lg:min-h-[620px] bg-black group block"
+      data-project-link={detailHref}
+      onClick={() => {
+        if (slug) {
+          try { sessionStorage.setItem("landing-scroll-y", String(window.scrollY)); } catch {}
+          router.push(detailHref);
+        } else window.open(detailHref, "_blank");
+      }}
+      className="relative w-full h-[82vh] min-h-[540px] lg:min-h-[620px] bg-black group block cursor-none"
       style={{ margin: 0 }}
     >
-      {/* image wrapper - rounded halus agar kiri atas tidak tajam (Image1) */}
+      {}
       <div className="absolute inset-0 overflow-hidden rounded-[12px] lg:rounded-[14px] pointer-events-none">
         {img ? (
           <img
@@ -496,53 +666,85 @@ function ProjectCard({ project }) {
           <div className="absolute inset-0 bg-[#111]" />
         )}
       </div>
-      {/* overlays - support both CSS group-hover and JS data-hovered (for scroll-without-move) */}
-      <div className="project-overlay absolute inset-0 bg-black/22 group-hover:bg-black/30 transition-colors duration-300" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
+      {}
+      <div className="project-overlay absolute inset-0 bg-black/28 group-hover:bg-black/36 transition-colors duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-black/15" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/18 via-transparent to-transparent" />
 
-      {/* top hairline + dashed */}
+      {}
       <div className="absolute top-0 inset-x-0 h-[1px] bg-white/10" />
       <div className="absolute top-6 lg:top-8 left-1/2 -translate-x-1/2 hidden md:flex items-center gap-[10px] opacity-25">
         {Array.from({ length: 26 }).map((_, i) => (
           <span key={i} className="w-[1px] h-[14px] bg-white/40 block" />
         ))}
       </div>
-      <div className="absolute top-6 lg:top-8 left-[4%] lg:left-[3.5%] z-10">
-        <p className="text-[11px] font-mono tracking-[0.14em] text-white/75 uppercase">
-          {title.split(" ")[0]} <span className="text-white/40">- {year}</span>
+      {}
+      <motion.div
+        initial={{ x: 22, y: 16, opacity: 0 }}
+        whileInView={{ x: 0, y: 0, opacity: 1 }}
+        viewport={{ once: true, amount: 0.35 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
+        className="absolute top-6 lg:top-8 left-[4%] lg:left-[3.5%] z-10 will-change-transform"
+      >
+        <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 backdrop-blur-[10px] px-3.5 py-1.5 text-[11px] font-mono tracking-[0.14em] text-white uppercase shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
+          {title.split(" ")[0]} <span className="text-white/60">- {year}</span>
         </p>
-      </div>
+      </motion.div>
 
-      {/* center */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-[6%] text-center z-10 pointer-events-none">
-        <h2 className="text-[36px] sm:text-[52px] lg:text-[68px] xl:text-[80px] font-medium tracking-[-0.04em] leading-[0.9] text-white max-w-[18ch] drop-shadow-[0_2px_16px_rgba(0,0,0,0.35)]">
+      {}
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-[3.2%] text-center z-10 pointer-events-none">
+        <motion.h2
+          initial={{ y: 34, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+          className="text-[36px] sm:text-[52px] lg:text-[68px] xl:text-[80px] font-medium tracking-[-0.04em] leading-[0.9] text-white max-w-[18ch] drop-shadow-[0_2px_18px_rgba(0,0,0,0.55)] [text-shadow:0_1px_20px_rgba(0,0,0,0.45)] will-change-transform"
+        >
           {title}
-        </h2>
-        <p className="mt-3 lg:mt-4 text-[11px] sm:text-[12px] font-mono tracking-[0.14em] text-white/75 uppercase max-w-[56ch] leading-relaxed">
+        </motion.h2>
+        <motion.p
+          initial={{ y: 28, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          className="mt-4 lg:mt-5 inline-flex max-w-[58ch] rounded-[14px] border border-white/10 bg-black/40 backdrop-blur-[12px] px-5 py-3 text-[11px] sm:text-[12px] font-mono tracking-[0.10em] text-white leading-relaxed shadow-[0_8px_32px_rgba(0,0,0,0.38)] will-change-transform"
+        >
           {subtitle}
-        </p>
+        </motion.p>
       </div>
 
-      {/* bottom */}
-      <div className="absolute bottom-6 lg:bottom-8 left-[4%] lg:left-[3.5%] z-10">
-        <ul className="flex flex-col gap-[3px]">
+      {}
+      <motion.div
+        initial={{ x: 20, y: 14, opacity: 0 }}
+        whileInView={{ x: 0, y: 0, opacity: 1 }}
+        viewport={{ once: true, amount: 0.35 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
+        className="absolute bottom-6 lg:bottom-8 left-[4%] lg:left-[3.5%] z-10 will-change-transform"
+      >
+        <ul className="flex flex-col gap-[4px] rounded-[12px] border border-white/10 bg-black/30 backdrop-blur-[10px] px-3.5 py-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
           {frameworks.slice(0, 5).map((fw) => (
             <li key={fw} className="text-[11px] sm:text-[12px] font-mono tracking-[0.08em] text-white leading-5 uppercase">
               {fw}
             </li>
           ))}
         </ul>
-      </div>
-      <div className="absolute bottom-6 lg:bottom-8 right-[4%] lg:right-[3.5%] z-10">
-        <p className="text-[11px] sm:text-[12px] font-mono tracking-[0.08em] text-white/80">YR/ {year}</p>
-      </div>
+      </motion.div>
+      <motion.div
+        initial={{ y: 14, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true, amount: 0.35 }}
+        transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.18 }}
+        className="absolute bottom-6 lg:bottom-8 right-[4%] lg:right-[3.5%] z-10 will-change-transform"
+      >
+        <p className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-[10px] px-3 py-1.5 text-[11px] sm:text-[12px] font-mono tracking-[0.08em] text-white shadow-[0_4px_16px_rgba(0,0,0,0.25)]">YR/ {year}</p>
+      </motion.div>
 
-      {/* mobile tap circle - hanya mobile, desktop pakai global fixed agar tidak terpotong di batas */}
+      {}
       <div
         className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#FF4D2E] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
       >
         <span className="text-[20px] font-black">→</span>
-        <span className="text-[10px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
+        <span className="text-[12px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
       </div>
     </section>
   );
@@ -569,7 +771,7 @@ function ProjectYearBar() {
   if (!range) return null;
   return (
     <section className="relative bg-[#0a0a0a] border-y border-white/[0.06] py-10 lg:py-12">
-      <div className="mx-auto max-w-[1600px] px-[6%] md:px-[4.5%] lg:px-[7.2%] flex items-center gap-4">
+      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] flex items-center gap-4">
         <span className="text-[18px] lg:text-[20px] font-light tracking-[-0.02em] text-white whitespace-nowrap">{range}</span>
         <div className="flex-1 h-[1px] bg-white/15" />
         <a
@@ -578,15 +780,434 @@ function ProjectYearBar() {
         >
           <span className="w-10 h-10 rounded-[10px] bg-[#FF4D2E] flex items-center justify-center text-white text-[18px] group-hover:scale-105 transition-transform">→</span>
           <span className="text-[14px] lg:text-[15px] font-medium tracking-[-0.02em] text-white">More Projects</span>
-          <sup className="text-[10px] font-mono text-white/40 -top-1">{count}</sup>
+          <sup className="text-[12px] font-mono text-[#F0F3FF]/78 -top-1">{count}</sup>
         </a>
       </div>
     </section>
   );
 }
 
+function WhoAmI() {
+  return (
+    <section id="about" className="relative bg-[#0a0404] py-10 lg:py-20 overflow-hidden isolate [transform:translateZ(0)]">
+      {}
+      <div className="absolute top-0 inset-x-0 h-px bg-white/[0.06]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.04),transparent_60%)]" />
+      <div className="relative mx-auto max-w-[1160px] px-[3.2%] md:px-[1.6%] lg:px-[14px]">
+        {}
+        <p className="text-center text-[11px] lg:text-[12px] font-medium tracking-[0.16em] text-[#F0F3FF]/82 uppercase">
+          Who Am I
+        </p>
+        {}
+        <h2 className="mt-3 text-center text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[88px] font-semibold tracking-[-0.04em] leading-[0.95] text-white">
+          <span className="inline-flex items-baseline justify-center flex-wrap gap-x-[0.08em]">
+            <span>The</span>
+            <span
+              className="italic font-normal tracking-[-0.02em] ml-[0.06em]"
+              style={{ fontFamily: "var(--font-serif), Georgia, serif" }}
+            >
+              human
+            </span>
+            <span className="ml-[0.08em]">behind</span>
+          </span>
+          <br />
+          <span className="block">all this code</span>
+        </h2>
+
+        {}
+        <div className="mt-10 lg:mt-14 grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] gap-4 lg:gap-5 items-stretch">
+          {}
+          <div className="relative rounded-[20px] lg:rounded-[24px] overflow-hidden bg-[#111010] border border-white/[0.08] shadow-[0_16px_48px_rgba(0,0,0,0.5)] min-h-[380px] lg:min-h-[520px] flex">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80&auto=format&fit=crop"
+              alt="Rizal dummy portrait"
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+            <div className="pointer-events-none absolute inset-0 rounded-[20px] lg:rounded-[24px] border border-white/[0.06] mix-blend-overlay" />
+          </div>
+
+          {}
+          <div className="relative rounded-[20px] lg:rounded-[24px] bg-white/[0.04] backdrop-blur-[12px] border border-white/[0.07] shadow-[0_16px_48px_rgba(0,0,0,0.45)] p-6 sm:p-7 lg:p-8 flex flex-col">
+            <p className="text-[13px] font-semibold tracking-[-0.02em] text-white">About me</p>
+            <div className="mt-6 lg:mt-8 space-y-4 text-[18px] lg:text-[20px] leading-[1.75] text-white/60">
+              <p>
+                I’m Rizal Maulana Airlangga, an IT student and aspiring fullstack developer interested in building modern
+                web applications from frontend to backend. I enjoy working with technologies like React, Vue, Tailwind CSS,
+                Laravel, Node.js, and ASP.NET to turn ideas into functional digital products.
+              </p>
+              <p>
+                I learn primarily through projects, collaboration, and experimentation—using tools like GitHub, Figma, Notion,
+                and AI to improve how I build and solve problems. I’m currently focused on growing my fullstack development
+                and Agile teamwork skills while creating digital solutions that are practical, thoughtful, and useful.
+              </p>
+            </div>
+            <div className="flex-1 min-h-[24px]" />
+                        <p
+              className="mt-8 text-[28px] lg:text-[32px] leading-none text-white select-none"
+              style={{ fontFamily: "var(--font-hand), 'Caveat', cursive", fontStyle: "italic", fontWeight: 500 }}
+            >
+              Rizal Maulana A.
+            </p>
+          </div>
+        </div>
+      </div>
+      {}
+      <div className="absolute bottom-0 inset-x-0 h-px bg-white/[0.06] [transform:translateZ(0)]" />
+    </section>
+  );
+}
+
+function ToolsMarquee() {
+  const [tools, setTools] = useState([]);
+  const [hoveredTool, setHoveredTool] = useState(null);
+  const [rowHoverTop, setRowHoverTop] = useState(false);
+  const [rowHoverBottom, setRowHoverBottom] = useState(false);
+  const topTrackRef = useRef(null);
+  const bottomTrackRef = useRef(null);
+  const topOffsetRef = useRef(0);
+  const bottomOffsetRef = useRef(0);
+  const topSpeedRef = useRef(48);
+  const bottomSpeedRef = useRef(48);
+  const rafRef = useRef(null);
+  const lastTimeRef = useRef(null);
+  const hoveredToolRef = useRef(null);
+  const rowHoverTopRef = useRef(false);
+  const rowHoverBottomRef = useRef(false);
+
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !anon) return;
+    const supa = createClient(url, anon);
+    supa
+      .from("tools")
+      .select("tool_id,name,short_desc,logo_public_url,logo_file_name,category")
+      .order("tool_id", { ascending: true })
+      .then(({ data }) => {
+        if (data) setTools(data);
+      });
+  }, []);
+
+  useEffect(() => { hoveredToolRef.current = hoveredTool; }, [hoveredTool]);
+  useEffect(() => { rowHoverTopRef.current = rowHoverTop; }, [rowHoverTop]);
+  useEffect(() => { rowHoverBottomRef.current = rowHoverBottom; }, [rowHoverBottom]);
+
+  useEffect(() => {
+    if (!tools.length) return;
+    const topEl = topTrackRef.current;
+    const bottomEl = bottomTrackRef.current;
+    if (!topEl || !bottomEl) return;
+
+    const getLoopWidth = (el) => el.scrollWidth / 4;
+    const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const init = () => {
+      const topLoop = getLoopWidth(topEl);
+      const bottomLoop = getLoopWidth(bottomEl);
+      topOffsetRef.current = 0;
+      bottomOffsetRef.current = -bottomLoop;
+      topEl.style.transform = `translate3d(0,0,0)`;
+      bottomEl.style.transform = `translate3d(${-bottomLoop}px,0,0)`;
+    };
+    init();
+    const onResize = () => init();
+    window.addEventListener("resize", onResize);
+
+    const tick = (now) => {
+      if (prefersReduced) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      if (lastTimeRef.current == null) lastTimeRef.current = now;
+      const dt = Math.min(0.05, (now - lastTimeRef.current) / 1000);
+      lastTimeRef.current = now;
+
+      const isMobile = window.innerWidth < 640;
+      const normal = isMobile ? 36 : 48; // px/s
+      const slow = normal * 0.38;
+
+      const ht = hoveredToolRef.current;
+      const rht = rowHoverTopRef.current;
+      const rhb = rowHoverBottomRef.current;
+
+      let topTarget;
+      if (ht?.startsWith("top-")) topTarget = 0;
+      else if (rht) topTarget = slow;
+      else topTarget = normal;
+
+      let bottomTarget;
+      if (ht?.startsWith("bottom-")) bottomTarget = 0;
+      else if (rhb) bottomTarget = slow;
+      else bottomTarget = normal;
+
+      topSpeedRef.current += (topTarget - topSpeedRef.current) * 0.12;
+      bottomSpeedRef.current += (bottomTarget - bottomSpeedRef.current) * 0.12;
+      if (Math.abs(topTarget - topSpeedRef.current) < 0.15) topSpeedRef.current = topTarget;
+      if (Math.abs(bottomTarget - bottomSpeedRef.current) < 0.15) bottomSpeedRef.current = bottomTarget;
+
+      const topLoop = getLoopWidth(topEl);
+      const bottomLoop = getLoopWidth(bottomEl);
+
+      topOffsetRef.current -= topSpeedRef.current * dt;
+      if (topOffsetRef.current <= -topLoop) topOffsetRef.current += topLoop;
+      if (topOffsetRef.current > 0) topOffsetRef.current -= topLoop;
+      topEl.style.transform = `translate3d(${topOffsetRef.current}px,0,0)`;
+
+      bottomOffsetRef.current += bottomSpeedRef.current * dt;
+      if (bottomOffsetRef.current >= 0) bottomOffsetRef.current -= bottomLoop;
+      if (bottomOffsetRef.current < -bottomLoop) bottomOffsetRef.current += bottomLoop;
+      bottomEl.style.transform = `translate3d(${bottomOffsetRef.current}px,0,0)`;
+
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("resize", onResize);
+      lastTimeRef.current = null;
+    };
+  }, [tools.length]);
+
+  if (!tools.length) {
+    return (
+      <section id="tools" className="relative bg-[#080405] border-y border-white/[0.06] py-10">
+        <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
+          <p className="text-xs font-mono tracking-[0.16em] text-[#F0F3FF]/70 animate-pulse">LOADING TOOLS...</p>
+        </div>
+      </section>
+    );
+  }
+
+  const mid = Math.ceil(tools.length / 2);
+  const topRow = tools.slice(0, mid);
+  const bottomRow = tools.slice(mid);
+  const dupTop = [...topRow, ...topRow, ...topRow, ...topRow];
+  const dupBottom = [...bottomRow, ...bottomRow, ...bottomRow, ...bottomRow];
+
+  return (
+    <section id="tools" className="relative bg-[#080405] border-y border-white/[0.06] overflow-hidden isolate [transform:translateZ(0)] [backface-visibility:hidden]" style={{ contain: "layout style" }}>
+      {}
+      <div className="relative z-20 mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-12 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
+        <div className="flex flex-col items-center">
+          <p className="text-[11px] lg:text-[12px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#FF4D2E] shadow-[0_0_12px_rgba(255,77,46,0.6)]" />
+            Stack • {tools.length} tools
+          </p>
+          <h2 className="mt-3 text-[36px] sm:text-[44px] lg:text-[56px] font-light tracking-[-0.04em] leading-[0.9] text-white">
+            Tools I <span className="font-black tracking-[-0.06em]">rely on</span>
+          </h2>
+        </div>
+        <p className="hidden md:block text-[11px] font-mono tracking-[0.08em] text-[#F0F3FF]/60 uppercase max-w-[48ch] leading-relaxed">
+          Hover bar to slow • hover icon to pause & read
+        </p>
+      </div>
+
+      <div className="relative pb-8 lg:pb-10 space-y-3 overflow-visible isolate" style={{ contain: "layout style" }}>
+        {}
+        <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+          <div className="absolute inset-y-0 left-0 w-[6%] lg:w-[10%] bg-gradient-to-r from-[#080405] to-transparent" />
+          <div className="absolute inset-y-0 right-0 w-[6%] lg:w-[10%] bg-gradient-to-l from-[#080405] to-transparent" />
+        </div>
+
+        {}
+        <div
+          className="marquee-row marquee-row--top relative overflow-visible py-3 group/row isolate"
+          onMouseEnter={() => setRowHoverTop(true)}
+          onMouseLeave={() => setRowHoverTop(false)}
+        >
+          <div
+            ref={topTrackRef}
+            className="marquee-track flex w-max items-center gap-3 lg:gap-4 [backface-visibility:hidden] [transform:translateZ(0)]"
+            style={{ transform: "translate3d(0,0,0)", backfaceVisibility: "hidden" }}
+          >
+            {dupTop.map((t, i) => (
+              <div
+                key={`top-${t.tool_id}-${i}`}
+                className="tool-card group/card relative shrink-0"
+                onMouseEnter={() => setHoveredTool(`top-${i}`)}
+                onMouseLeave={() => setHoveredTool(null)}
+              >
+                <div className="relative w-[76px] h-[76px] lg:w-[88px] lg:h-[88px] rounded-[18px] lg:rounded-[20px] bg-white/[0.035] border border-white/[0.07] backdrop-blur-[8px] flex items-center justify-center p-[14px] lg:p-[16px] overflow-hidden transition-all duration-300 group-hover/card:bg-white/[0.08] group-hover/card:border-white/15 group-hover/card:scale-[1.04] group-hover/card:shadow-[0_8px_32px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.08)_inset]">
+                  <div className="absolute inset-0 rounded-[18px] lg:rounded-[20px] bg-gradient-to-b from-white/[0.06] to-transparent opacity-60 pointer-events-none" />
+                  <div className="absolute inset-0 rounded-[18px] lg:rounded-[20px] opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.10),transparent_70%)] pointer-events-none" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={t.logo_public_url}
+                    alt={t.name}
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    className="relative z-10 w-full h-full object-contain select-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]"
+                  />
+                </div>
+                {}
+                <div
+                  className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+18px)] z-30 w-[330px] lg:w-[380px] max-w-[calc(100vw-32px)] pointer-events-none transition-all duration-200 ${hoveredTool === `top-${i}` ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
+                >
+                  <div className="relative rounded-[20px] border border-white/10 bg-[#111010] shadow-[0_16px_48px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.06)_inset] overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
+                    <div className="relative p-5 lg:p-6">
+                      <div className="flex items-center gap-4">
+                        <span className="w-14 h-14 lg:w-16 lg:h-16 rounded-[16px] lg:rounded-[18px] bg-white/[0.06] border border-white/10 flex items-center justify-center p-2.5 shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={t.logo_public_url} alt="" className="w-full h-full object-contain" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[20px] lg:text-[22px] font-semibold tracking-[-0.02em] text-white leading-tight">{t.name}</p>
+                          <p className="mt-1.5 text-[14px] lg:text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/78">{t.category || "Lainnya"}</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-[15px] lg:text-[16px] leading-[1.6] text-white/60 line-clamp-3">{t.short_desc}</p>
+                    </div>
+                  </div>
+                  <div className="mx-auto -mt-[1px] w-5 h-5 rotate-45 bg-[#111010] border-r border-b border-white/10 shadow-[0_8px_16px_rgba(0,0,0,0.25)]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {}
+        <div
+          className="marquee-row marquee-row--bottom relative overflow-visible py-3 group/row isolate"
+          onMouseEnter={() => setRowHoverBottom(true)}
+          onMouseLeave={() => setRowHoverBottom(false)}
+        >
+          <div
+            ref={bottomTrackRef}
+            className="marquee-track flex w-max items-center gap-3 lg:gap-4 [backface-visibility:hidden] [transform:translateZ(0)]"
+            style={{ transform: "translate3d(0,0,0)", backfaceVisibility: "hidden" }}
+          >
+            {dupBottom.map((t, i) => (
+              <div
+                key={`bottom-${t.tool_id}-${i}`}
+                className="tool-card group/card relative shrink-0"
+                onMouseEnter={() => setHoveredTool(`bottom-${i}`)}
+                onMouseLeave={() => setHoveredTool(null)}
+              >
+                <div className="relative w-[76px] h-[76px] lg:w-[88px] lg:h-[88px] rounded-[18px] lg:rounded-[20px] bg-white/[0.035] border border-white/[0.07] backdrop-blur-[8px] flex items-center justify-center p-[14px] lg:p-[16px] overflow-hidden transition-all duration-300 group-hover/card:bg-white/[0.08] group-hover/card:border-white/15 group-hover/card:scale-[1.04] group-hover/card:shadow-[0_8px_32px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.08)_inset]">
+                  <div className="absolute inset-0 rounded-[18px] lg:rounded-[20px] bg-gradient-to-b from-white/[0.06] to-transparent opacity-60 pointer-events-none" />
+                  <div className="absolute inset-0 rounded-[18px] lg:rounded-[20px] opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.10),transparent_70%)] pointer-events-none" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={t.logo_public_url}
+                    alt={t.name}
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    className="relative z-10 w-full h-full object-contain select-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]"
+                  />
+                </div>
+                <div
+                  className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+18px)] z-30 w-[330px] lg:w-[380px] max-w-[calc(100vw-32px)] pointer-events-none transition-all duration-200 ${hoveredTool === `bottom-${i}` ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
+                >
+                  <div className="relative rounded-[20px] border border-white/10 bg-[#111010] shadow-[0_16px_48px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.06)_inset] overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
+                    <div className="relative p-5 lg:p-6">
+                      <div className="flex items-center gap-4">
+                        <span className="w-14 h-14 lg:w-16 lg:h-16 rounded-[16px] lg:rounded-[18px] bg-white/[0.06] border border-white/10 flex items-center justify-center p-2.5 shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={t.logo_public_url} alt="" className="w-full h-full object-contain" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[20px] lg:text-[22px] font-semibold tracking-[-0.02em] text-white leading-tight">{t.name}</p>
+                          <p className="mt-1.5 text-[14px] lg:text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/78">{t.category || "Lainnya"}</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-[15px] lg:text-[16px] leading-[1.6] text-white/60 line-clamp-3">{t.short_desc}</p>
+                    </div>
+                  </div>
+                  <div className="mx-auto -mt-[1px] w-5 h-5 rotate-45 bg-[#111010] border-r border-b border-white/10 shadow-[0_8px_16px_rgba(0,0,0,0.25)]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <style>{`@media (prefers-reduced-motion: reduce) { .marquee-track { transform: none !important; } }`}</style>
+    </section>
+  );
+}
+
 function WhatCanIDo() {
   const [hovered, setHovered] = useState(null);
+
+  const velocity = useRef({ x: 0, y: 0, t: 0, speed: 0 });
+  const pendingTimer = useRef(null);
+  const pendingIndex = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (pendingTimer.current) clearTimeout(pendingTimer.current);
+    };
+  }, []);
+
+  const isCoarsePointer = () =>
+    typeof window !== "undefined" && window.matchMedia?.("(hover: none)").matches;
+  const pointerSpeed = () => {
+    const v = velocity.current;
+    if (!v.t || performance.now() - v.t > 130) return 0;
+    return v.speed;
+  };
+  const recordMove = (e) => {
+    const now = performance.now();
+    const v = velocity.current;
+    if (v.t) {
+      const dt = Math.max(1, now - v.t);
+      const s = (Math.hypot(e.clientX - v.x, e.clientY - v.y) / dt) * 1000;
+      v.speed = v.speed * 0.6 + s * 0.4;
+    }
+    v.x = e.clientX;
+    v.y = e.clientY;
+    v.t = now;
+  };
+  const openRow = (i) => {
+    if (isCoarsePointer()) return;
+    if (pendingTimer.current) {
+      clearTimeout(pendingTimer.current);
+      pendingTimer.current = null;
+    }
+    pendingIndex.current = null;
+    if (pointerSpeed() < 1000) {
+      setHovered(i);
+      return;
+    }
+    pendingIndex.current = i;
+    pendingTimer.current = setTimeout(() => {
+      pendingTimer.current = null;
+      const target = pendingIndex.current;
+      pendingIndex.current = null;
+      setHovered(target);
+    }, 110);
+  };
+  const handleRowEnd = (e) => {
+    if (isCoarsePointer()) return;
+    if (typeof e?.clientX === "number" && typeof e?.clientY === "number" && typeof document?.elementFromPoint === "function") {
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      if (el instanceof Element && el.closest?.("[data-svc-row]")) return;
+    }
+    const rt = e?.relatedTarget;
+    if (rt instanceof Element && rt.closest?.("[data-svc-row]")) return;
+    if (pendingTimer.current) {
+      clearTimeout(pendingTimer.current);
+      pendingTimer.current = null;
+    }
+    pendingIndex.current = null;
+    setHovered(null);
+  };
+  const toggleRow = (i) => {
+    if (pendingTimer.current) {
+      clearTimeout(pendingTimer.current);
+      pendingTimer.current = null;
+    }
+    pendingIndex.current = null;
+    setHovered((cur) => (cur === i ? null : i));
+  };
 
   const services = [
     {
@@ -595,6 +1216,7 @@ function WhatCanIDo() {
       desc: "Crafting fast and responsive interfaces with Next.js, React and Tailwind for clean and performant web experiences.",
       tags: ["Next.js", "React", "Tailwind CSS", "Framer Motion"],
       accent: "from-[#1a1a1a] to-[#2a1010]",
+      imgFromX: -32,
     },
     {
       num: "02",
@@ -602,6 +1224,7 @@ function WhatCanIDo() {
       desc: "Cross platform mobile apps with Flutter and React Native, smooth native feel experiences on Android with clean state management.",
       tags: ["Flutter", "React Native", "Expo", "Dart"],
       accent: "from-[#0f1a2a] to-[#102a1a]",
+      imgFromX: 32,
     },
     {
       num: "03",
@@ -609,6 +1232,7 @@ function WhatCanIDo() {
       desc: "Scalable APIs and server logic with Node.js, Supabase and ASP.NET Core, auth, REST and realtime handled with clean and maintainable architecture.",
       tags: ["Node.js", "ASP.NET Core", "Supabase", "REST API"],
       accent: "from-[#1a102a] to-[#2a1a10]",
+      imgFromX: -32,
     },
     {
       num: "04",
@@ -616,63 +1240,61 @@ function WhatCanIDo() {
       desc: "Postgres schema design, migrations, RLS and Storage, clean data modeling and optimized queries for reliable performance.",
       tags: ["PostgreSQL", "Migrations", "RLS Policies", "Storage"],
       accent: "from-[#101a1a] to-[#1a2a2a]",
+      imgFromX: 32,
     },
   ];
 
   return (
-    <section className="relative bg-black border-y border-white/[0.06]">
-      {/* header - judul diperbesar dan tebal */}
-      <div className="mx-auto max-w-[1600px] px-[6%] md:px-[4.5%] lg:px-[7.2%] pt-10 lg:pt-14 pb-6 lg:pb-8 flex items-end justify-between gap-6">
-        <div>
-          <p className="text-[12px] lg:text-[13px] font-mono font-semibold tracking-[0.16em] text-white/60 uppercase flex items-center gap-2">
+    <section id="services" className="relative bg-black border-y border-white/[0.06]">
+            <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-14 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
+        <div className="flex flex-col items-center">
+          <p className="text-[12px] lg:text-[13px] font-mono font-semibold tracking-[0.16em] text-white/60 uppercase flex items-center justify-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#FF4D2E]" /> Services
           </p>
-          <h2 className="mt-3 text-[44px] sm:text-[56px] lg:text-[72px] xl:text-[84px] font-black tracking-[-0.06em] leading-[0.9] text-white">
+          <h2 className="mt-3 text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[88px] font-black tracking-[-0.06em] leading-[0.9] text-white">
             What can I do?
           </h2>
         </div>
-        <p className="hidden md:block text-[11px] font-mono tracking-[0.12em] text-white/25 uppercase max-w-[30ch] text-right leading-relaxed">
-          4 core capabilities, frontend, mobile,<br /> backend and database
+        <p className="hidden md:block text-[11px] font-mono tracking-[0.12em] text-[#F0F3FF]/60 uppercase max-w-[48ch] leading-relaxed">
+          4 core capabilities, frontend, mobile, backend and database
         </p>
       </div>
 
-      <div className="mx-auto max-w-[1600px] px-[6%] md:px-[4.5%] lg:px-[7.2%] pb-6 lg:pb-8">
-        {/* garis pemisah dipertebal lagi - mirip Nakula 1px tapi opacity lebih tinggi agar terlihat */}
-        <div className="border-t border-white/[0.28]">
+      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pb-6 lg:pb-8">
+        {}
+        <div className="border-t border-white/[0.28]" onMouseMove={recordMove}>
           {services.map((item, i) => {
             const isHovered = hovered === i;
             return (
               <motion.div
                 key={item.num}
-                layout
-                onHoverStart={() => setHovered(i)}
-                onHoverEnd={() => setHovered(null)}
-                onFocus={() => setHovered(i)}
-                onBlur={() => setHovered(null)}
-                onClick={() => setHovered(isHovered ? null : i)}
+                data-svc-row={item.num}
+                onHoverStart={() => openRow(i)}
+                onHoverEnd={handleRowEnd}
+                onFocus={() => openRow(i)}
+                onBlur={handleRowEnd}
+                onClick={() => toggleRow(i)}
                 role="button"
                 tabIndex={0}
                 aria-expanded={isHovered}
-                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setHovered(isHovered ? null : i)}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleRow(i)}
                 className="border-b border-white/[0.26] cursor-pointer overflow-hidden"
-                transition={{ layout: { duration: 0.6, ease: [0.76, 0, 0.24, 1] } }}
               >
-                {/* ===== DESKTOP ===== */}
-                <div className="hidden lg:block">
-                  {/* baris persisten: nomor single element + judul kecil / judul besar */}
-                  <div className="flex items-center -mx-[1.5%] px-[1.5%]">
-                    {/* kiri persisten: nomor (single element yang membesar) + gambar */}
-                    <div className="flex items-center gap-6 xl:gap-8 shrink-0 w-[520px] xl:w-[600px] py-0">
-                       {/* nomor: fontSize uniform biar tidak melebar dulu - easing Nakula smooth */}
-                      <div className="flex items-center shrink-0 py-[32px] w-[88px] xl:w-[102px]">
+                                <div className="hidden lg:block">
+                  {}
+                  <div className="flex items-center gap-8 xl:gap-12 px-[0.5%]">
+                    {}
+                    <div className="flex items-center gap-10 xl:gap-16 shrink-0">
+                       {}
+                      <div className="flex items-center shrink-0 h-[100px] xl:h-[110px] w-[170px] xl:w-[210px]">
                         <motion.span
                           animate={{
-                            fontSize: isHovered ? "62px" : "26px",
+                            fontSize: isHovered ? "120px" : "28px",
                           }}
                           transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-                          className="block font-mono tracking-[-0.02em] leading-none select-none shrink-0"
+                          className="block font-mono tracking-[-0.02em] leading-none select-none shrink-0 whitespace-nowrap"
                           style={{
-                            color: isHovered ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.42)",
+                            color: "rgba(255,255,255,0.42)",
                             fontWeight: isHovered ? 900 : 500,
                             lineHeight: 1,
                           }}
@@ -682,7 +1304,7 @@ function WhatCanIDo() {
                         </motion.span>
                       </div>
 
-                      {/* gambar: Nakula style - kecil transparan di tengah lalu membesar */}
+                      {}
                       <motion.div
                         initial={false}
                         animate={{
@@ -690,16 +1312,17 @@ function WhatCanIDo() {
                           opacity: isHovered ? 1 : 0,
                         }}
                         transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-                        className="overflow-hidden shrink-0 my-[18px] w-[360px] xl:w-[420px] rounded-[16px]"
+                        className="overflow-hidden shrink-0 my-[18px] w-[440px] xl:w-[560px] rounded-[20px]"
                       >
                         <motion.div
                           initial={false}
                           animate={{
                             scale: isHovered ? 1 : 0.82,
+                            x: isHovered ? 0 : item.imgFromX,
                             y: isHovered ? 0 : 8,
                           }}
                           transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-                          className={`relative w-[360px] xl:w-[420px] h-[220px] xl:h-[240px] rounded-[16px] overflow-hidden bg-gradient-to-br ${item.accent} border border-white/[0.06] flex items-center justify-center overflow-hidden ${!isHovered ? "pointer-events-none" : ""}`}
+                          className={`relative w-[440px] xl:w-[560px] h-[300px] xl:h-[380px] rounded-[20px] overflow-hidden bg-gradient-to-br ${item.accent} border border-white/[0.06] flex items-center justify-center ${!isHovered ? "pointer-events-none" : ""}`}
                         >
                         <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
                         {item.num === "01" && <FrontendVisual />}
@@ -707,7 +1330,7 @@ function WhatCanIDo() {
                         {item.num === "03" && <BackendVisual />}
                         {item.num === "04" && <DatabaseVisual />}
                         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                          <span className="text-[10px] font-mono tracking-[0.14em] text-white/70 uppercase bg-black/35 backdrop-blur px-2.5 py-1 rounded-full border border-white/10">
+                          <span className="text-[12px] font-mono tracking-[0.14em] text-white/70 uppercase bg-black/35 backdrop-blur px-2.5 py-1 rounded-full border border-white/10">
                             0{item.num.slice(1)} • {item.title.split(" ")[0]}
                           </span>
                           <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center text-[12px]">→</span>
@@ -716,12 +1339,12 @@ function WhatCanIDo() {
                       </motion.div>
                     </div>
 
-                    {/* kanan: judul */}
-                    <div className="flex-1 min-w-0 pl-6 xl:pl-8 flex flex-col justify-center py-[18px]">
-                      {/* judul kecil: saat hover terdorong ke atas - easing Nakula */}
+                    {}
+                    <div className="flex-1 min-w-0 pl-8 xl:pl-12 flex flex-col justify-center py-[18px]">
+                      {}
                       <motion.div
                         animate={{
-                          height: isHovered ? 0 : 108,
+                          height: isHovered ? 0 : 120,
                           opacity: isHovered ? 0 : 1,
                           y: isHovered ? -16 : 0,
                         }}
@@ -732,12 +1355,12 @@ function WhatCanIDo() {
                         }}
                         className="overflow-hidden flex items-center"
                       >
-                        <span className="block text-[26px] xl:text-[29px] font-semibold tracking-[-0.025em] text-white/90 text-left">
+                        <span className="block text-[30px] xl:text-[34px] font-semibold tracking-[-0.025em] text-white/90 text-left">
                           {item.title}
                         </span>
                       </motion.div>
 
-                      {/* detail: satu blok halus - Nakula timing */}
+                      {}
                       <motion.div
                         animate={{
                           height: isHovered ? "auto" : 0,
@@ -750,10 +1373,10 @@ function WhatCanIDo() {
                         className="overflow-hidden"
                       >
                         <div className="py-1">
-                          <h3 className="text-[32px] xl:text-[36px] font-bold tracking-[-0.04em] leading-[0.95] text-white">
+                          <h3 className="text-[40px] xl:text-[48px] font-bold tracking-[-0.04em] leading-[0.95] text-white">
                             {item.title}
                           </h3>
-                          <p className="mt-3 text-[14px] leading-relaxed text-white/50 max-w-[44ch]">{item.desc}</p>
+                          <p className="mt-4 text-[16px] xl:text-[18px] leading-relaxed text-[#F0F3FF]/82 max-w-[46ch]">{item.desc}</p>
                           <div className="mt-5 flex flex-wrap gap-2">
                             {item.tags.map((tag) => (
                               <span key={tag} className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[12.5px] font-medium tracking-[-0.01em] text-white/70">
@@ -767,9 +1390,8 @@ function WhatCanIDo() {
                   </div>
                 </div>
 
-                {/* ===== MOBILE ===== */}
-                <div className="lg:hidden">
-                  {/* baris atas: nomor + judul kecil */}
+                                <div className="lg:hidden">
+                  {}
                   <motion.div
                     animate={{
                       height: isHovered ? 0 : 108,
@@ -785,11 +1407,11 @@ function WhatCanIDo() {
                   >
                     <div className="flex items-center justify-between gap-3 py-[32px] -mx-[2%] px-[2%]">
                       <motion.span
-                        animate={{ fontSize: isHovered ? "52px" : "24px" }}
+                        animate={{ fontSize: isHovered ? "68px" : "26px" }}
                         transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
                         className="shrink-0 font-mono tracking-[-0.02em] leading-none select-none"
                         style={{
-                          color: isHovered ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.42)",
+                          color: "rgba(255,255,255,0.42)",
                           fontWeight: isHovered ? 900 : 500,
                           lineHeight: 1,
                         }}
@@ -797,13 +1419,13 @@ function WhatCanIDo() {
                         {item.num}
                         <span className="text-[#FF3B30]">.</span>
                       </motion.span>
-                      <span className="text-[21px] font-semibold tracking-[-0.02em] text-white/90 text-right max-w-[60%] leading-tight">
+                      <span className="text-[24px] font-semibold tracking-[-0.02em] text-white/90 text-right max-w-[60%] leading-tight">
                         {item.title}
                       </span>
                     </div>
                   </motion.div>
 
-                  {/* expanded mobile */}
+                  {}
                   <motion.div
                     animate={{
                       height: isHovered ? "auto" : 0,
@@ -817,19 +1439,19 @@ function WhatCanIDo() {
                   >
                     <div className="pb-7 pt-2">
                       <div className="flex items-center gap-3 mb-4">
-                        <span className="text-[13px] font-mono tracking-[0.08em] text-white/35">
+                        <span className="text-[13px] font-mono tracking-[0.08em] text-[#F0F3FF]/75">
                           {item.num}
                           <span className="text-[#FF3B30]">.</span>
                         </span>
                       </div>
-                      <div className={`relative w-full h-[210px] rounded-[14px] overflow-hidden bg-gradient-to-br ${item.accent} border border-white/[0.06] flex items-center justify-center`}>
+                      <div className={`relative w-full h-[250px] rounded-[14px] overflow-hidden bg-gradient-to-br ${item.accent} border border-white/[0.06] flex items-center justify-center`}>
                         <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
                         {item.num === "01" && <FrontendVisual />}
                         {item.num === "02" && <MobileVisual />}
                         {item.num === "03" && <BackendVisual />}
                         {item.num === "04" && <DatabaseVisual />}
                         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                          <span className="text-[10px] font-mono tracking-[0.14em] text-white/70 uppercase bg-black/35 backdrop-blur px-2.5 py-1 rounded-full border border-white/10">
+                          <span className="text-[12px] font-mono tracking-[0.14em] text-white/70 uppercase bg-black/35 backdrop-blur px-2.5 py-1 rounded-full border border-white/10">
                             0{item.num.slice(1)} • {item.title.split(" ")[0]}
                           </span>
                           <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center text-[12px]">→</span>
@@ -837,8 +1459,8 @@ function WhatCanIDo() {
                       </div>
 
                       <div className="mt-6">
-                        <h3 className="text-[26px] font-bold tracking-[-0.04em] leading-[0.95] text-white">{item.title}</h3>
-                        <p className="mt-3 text-[13px] leading-relaxed text-white/50">{item.desc}</p>
+                        <h3 className="text-[30px] font-bold tracking-[-0.04em] leading-[0.95] text-white">{item.title}</h3>
+                        <p className="mt-3 text-[15px] leading-relaxed text-[#F0F3FF]/82">{item.desc}</p>
                       </div>
                       <div className="mt-5 flex flex-wrap gap-2">
                         {item.tags.map((tag) => (
@@ -871,8 +1493,13 @@ function FrontendVisual() {
       </div>
       <div className="mt-3 flex-1 grid grid-cols-[1.35fr_0.85fr] gap-2.5">
         <div className="rounded-[10px] bg-black/40 border border-white/10 p-2.5 flex flex-col gap-1.5 overflow-hidden">
-          <div className="flex items-center gap-1 text-[7px] font-mono text-white/40">
+          <div className="flex items-center gap-1 text-[9px] font-mono text-[#F0F3FF]/78">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D2E]" /> app/page.tsx
+          </div>
+          <div className="mt-1.5 flex gap-1">
+            <span className="rounded bg-white/15 px-1.5 py-0.5 text-[8px] font-mono text-white/80">page.tsx</span>
+            <span className="rounded px-1.5 py-0.5 text-[8px] font-mono text-white/35">layout.tsx</span>
+            <span className="rounded px-1.5 py-0.5 text-[8px] font-mono text-white/35">globals.css</span>
           </div>
           <div className="space-y-1">
             <div className="h-1.5 w-[72%] rounded bg-[#7DD3FC]/70" />
@@ -881,12 +1508,13 @@ function FrontendVisual() {
             <div className="h-1.5 w-[62%] rounded bg-[#A5B4FC]/50" />
           </div>
           <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-            <div className="h-[28px] rounded bg-white/90 flex items-center justify-center text-[7px] font-bold text-black">UI Card</div>
+            <div className="h-[28px] rounded bg-white/90 flex items-center justify-center text-[9px] font-bold text-black">UI Card</div>
             <div className="h-[28px] rounded bg-white/10 border border-white/10" />
           </div>
-          <div className="mt-auto flex gap-1">
+          <div className="mt-auto flex gap-1 items-center">
             <span className="h-1.5 w-8 rounded-full bg-[#FF4D2E]/60" />
             <span className="h-1.5 w-6 rounded-full bg-white/10" />
+            <span className="ml-auto rounded-full bg-emerald-400/15 border border-emerald-400/20 px-1.5 py-0.5 text-[8px] font-mono text-emerald-300">Perf 98 • LCP 0.9s</span>
           </div>
         </div>
         <div className="flex flex-col gap-2">
@@ -895,7 +1523,7 @@ function FrontendVisual() {
             <div className="mt-2 h-1.5 w-3/4 rounded bg-black/10" />
             <div className="mt-1 h-1 w-full rounded bg-black/5" />
             <div className="mt-1 h-1 w-5/6 rounded bg-black/5" />
-            <div className="mt-auto h-5 rounded-full bg-black text-white flex items-center justify-center text-[7px] font-bold">View →</div>
+            <div className="mt-auto h-5 rounded-full bg-black text-white flex items-center justify-center text-[9px] font-bold">View →</div>
           </div>
           <div className="h-[36px] rounded-[10px] bg-[#FF4D2E] p-2 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[8px] text-white">◩</span>
@@ -916,43 +1544,60 @@ function MobileVisual() {
       <div className="relative flex items-center gap-3">
         <div className="relative w-[108px] h-[192px] rounded-[18px] bg-black border-[3px] border-white/15 shadow-[0_12px_32px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col">
           <div className="h-5 bg-white/5 flex items-center justify-between px-3">
-            <span className="text-[6px] font-mono text-white/40">9:41</span>
+            <span className="text-[8px] font-mono text-[#F0F3FF]/78">9:41</span>
             <span className="flex gap-0.5"><span className="w-2 h-1 rounded bg-white/60" /><span className="w-1 h-1 rounded-full bg-white/30" /></span>
           </div>
           <div className="px-2.5 pt-2 flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-full bg-[#02569B] flex items-center justify-center text-[7px] font-black text-white">F</span>
+            <span className="w-5 h-5 rounded-full bg-[#02569B] flex items-center justify-center text-[9px] font-black text-white">F</span>
             <div className="flex-1">
               <div className="h-1 w-8 rounded bg-white/80" />
               <div className="mt-1 h-1 w-5 rounded bg-white/20" />
             </div>
-            <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[7px] text-white/60">◈</span>
+            <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[9px] text-white/60">◈</span>
           </div>
           <div className="mt-2 mx-2 rounded-[10px] bg-white p-2">
             <div className="h-1.5 w-3/4 rounded bg-black/10" />
             <div className="mt-1 h-1 w-full rounded bg-black/5" />
-            <div className="mt-2 h-10 rounded bg-[#0a0404]/5 border border-black/5 flex items-center justify-center">
-              <span className="text-[14px]">📱</span>
+            <div className="mt-2 h-10 rounded bg-[#0a0404]/5 border border-black/5 flex items-end justify-center gap-1 px-2 pb-1.5 pt-1.5">
+              <span className="w-1.5 rounded bg-[#02569B]/50" style={{ height: "40%" }} />
+              <span className="w-1.5 rounded bg-[#02569B]/70" style={{ height: "70%" }} />
+              <span className="w-1.5 rounded bg-[#02569B]" style={{ height: "100%" }} />
+              <span className="w-1.5 rounded bg-[#02569B]/70" style={{ height: "55%" }} />
+              <span className="w-1.5 rounded bg-[#02569B]/50" style={{ height: "85%" }} />
             </div>
-            <div className="mt-2 h-4 rounded-full bg-black flex items-center justify-center text-[6px] font-bold text-white">Open App</div>
+            <div className="mt-2 h-4 rounded-full bg-black flex items-center justify-center text-[8px] font-bold text-white">Open App</div>
+          </div>
+          <div className="mt-1.5 mx-2 flex items-center justify-around">
+            <span className="w-1.5 h-1.5 rounded-full bg-white/80" />
+            <span className="w-1.5 h-1.5 rounded-full bg-white/25" />
+            <span className="w-1.5 h-1.5 rounded-full bg-white/25" />
+            <span className="w-1.5 h-1.5 rounded-full bg-white/25" />
           </div>
           <div className="mt-auto mx-auto mb-1.5 w-8 h-1 rounded-full bg-white/20" />
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="w-[72px] rounded-[10px] bg-white/10 backdrop-blur border border-white/10 p-2">
-            <div className="text-[6px] font-mono tracking-[0.08em] text-white/50 uppercase">Flutter</div>
+            <div className="text-[8px] font-mono tracking-[0.08em] text-[#F0F3FF]/82 uppercase">Flutter</div>
             <div className="mt-1 h-1 w-full rounded bg-white/20" />
             <div className="mt-1 h-1 w-2/3 rounded bg-white/20" />
           </div>
           <div className="w-[72px] rounded-[10px] bg-white p-2 shadow-md">
-            <div className="text-[6px] font-mono tracking-[0.08em] text-black/40 uppercase">React Native</div>
+            <div className="text-[8px] font-mono tracking-[0.08em] text-black/40 uppercase">React Native</div>
             <div className="mt-1 flex gap-1">
               <span className="h-1.5 flex-1 rounded bg-black" />
               <span className="h-1.5 flex-1 rounded bg-black/10" />
             </div>
           </div>
+          <div className="w-[72px] rounded-[10px] bg-white/10 backdrop-blur border border-white/10 p-2">
+            <div className="flex rounded-full bg-black/40 p-0.5">
+              <span className="flex-1 rounded-full bg-white text-[7px] font-bold text-black text-center py-0.5">iOS</span>
+              <span className="flex-1 text-[7px] font-bold text-white/50 text-center py-0.5">Andr</span>
+            </div>
+            <div className="mt-1.5 text-[8px] font-mono text-emerald-300">Hot reload 240ms</div>
+          </div>
           <div className="w-[72px] rounded-full bg-[#FF4D2E] px-2 py-1.5 flex items-center justify-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            <span className="text-[6px] font-bold tracking-[0.08em] text-white">LIVE PREVIEW</span>
+            <span className="text-[8px] font-bold tracking-[0.08em] text-white">LIVE PREVIEW</span>
           </div>
         </div>
       </div>
@@ -964,37 +1609,45 @@ function BackendVisual() {
   return (
     <div className="absolute inset-0 p-3 lg:p-4 flex flex-col">
       <div className="flex items-center justify-between">
-        <span className="text-[7px] font-mono tracking-[0.12em] text-white/40 uppercase">API Gateway - Scalable</span>
-        <span className="flex items-center gap-1 text-[7px] font-mono text-emerald-300"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> live</span>
+        <span className="text-[9px] font-mono tracking-[0.12em] text-[#F0F3FF]/78 uppercase">API Gateway - Scalable</span>
+        <span className="flex items-center gap-1 text-[9px] font-mono text-emerald-300"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> live</span>
+      </div>
+      <div className="mt-2 flex items-center gap-1">
+        <span className="rounded bg-emerald-400/15 border border-emerald-400/20 px-1.5 py-0.5 text-[8px] font-mono text-emerald-300">GET 200</span>
+        <span className="rounded bg-white/5 border border-white/10 px-1.5 py-0.5 text-[8px] font-mono text-white/60">POST 201</span>
+        <span className="rounded bg-white/5 border border-white/10 px-1.5 py-0.5 text-[8px] font-mono text-white/60">JWT Auth</span>
+        <span className="ml-auto text-[8px] font-mono text-white/40">realtime • 3 listeners</span>
       </div>
       <div className="mt-3 flex-1 flex items-center gap-2">
         <div className="flex flex-col items-center gap-1">
-          <span className="w-8 h-8 rounded-[9px] bg-white flex items-center justify-center text-[11px]">🌐</span>
-          <span className="text-[6px] font-mono text-white/50">Client</span>
+          <span className="w-8 h-8 rounded-[9px] bg-white flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a0404" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9s-1.4 6.4-3.9 9c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3z" /></svg>
+          </span>
+          <span className="text-[8px] font-mono text-[#F0F3FF]/82">Client</span>
         </div>
-        <span className="flex-1 h-[1px] bg-gradient-to-r from-white/20 to-white/20 relative"><span className="absolute right-0 -top-[3px] text-[7px] text-white/50">▸</span></span>
+        <span className="flex-1 h-[1px] bg-gradient-to-r from-white/20 to-white/20 relative"><span className="absolute right-0 -top-[3px] text-[9px] text-[#F0F3FF]/82">▸</span></span>
         <div className="flex flex-col gap-1.5">
           <div className="w-[92px] rounded-[9px] bg-[#68A063] px-2 py-1.5 flex items-center gap-1.5 border border-white/10 shadow">
-            <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[7px] font-black text-[#68A063]">N</span>
-            <div><div className="text-[7px] font-bold leading-none text-white">Node.js</div><div className="text-[6px] font-mono leading-none text-white/70">REST - Auth</div></div>
-            <span className="ml-auto text-[7px] text-white/80">●</span>
+            <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[9px] font-black text-[#68A063]">N</span>
+            <div><div className="text-[9px] font-bold leading-none text-white">Node.js</div><div className="text-[8px] font-mono leading-none text-white/70">REST - Auth</div></div>
+            <span className="ml-auto text-[9px] text-white/80">●</span>
           </div>
           <div className="w-[92px] rounded-[9px] bg-[#512BD4] px-2 py-1.5 flex items-center gap-1.5 border border-white/10 shadow">
-            <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[6px] font-black text-[#512BD4]">.NET</span>
-            <div><div className="text-[7px] font-bold leading-none text-white">ASP.NET Core</div><div className="text-[6px] font-mono leading-none text-white/70">API - Clean Arch</div></div>
-            <span className="ml-auto text-[7px] text-white/80">●</span>
+            <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[8px] font-black text-[#512BD4]">.NET</span>
+            <div><div className="text-[9px] font-bold leading-none text-white">ASP.NET Core</div><div className="text-[8px] font-mono leading-none text-white/70">API - Clean Arch</div></div>
+            <span className="ml-auto text-[9px] text-white/80">●</span>
           </div>
         </div>
-        <span className="flex-1 h-[1px] bg-gradient-to-r from-white/20 to-white/20 relative"><span className="absolute right-0 -top-[3px] text-[7px] text-white/50">▸</span></span>
+        <span className="flex-1 h-[1px] bg-gradient-to-r from-white/20 to-white/20 relative"><span className="absolute right-0 -top-[3px] text-[9px] text-[#F0F3FF]/82">▸</span></span>
         <div className="flex flex-col items-center gap-1">
-          <span className="w-8 h-8 rounded-[9px] bg-[#3ECF8E] flex items-center justify-center text-[10px] font-black text-white">S</span>
-          <span className="text-[6px] font-mono text-white/50">Supabase</span>
+          <span className="w-8 h-8 rounded-[9px] bg-[#3ECF8E] flex items-center justify-center text-[12px] font-black text-white">S</span>
+          <span className="text-[8px] font-mono text-[#F0F3FF]/82">Supabase</span>
         </div>
       </div>
       <div className="mt-auto flex items-center gap-1.5 rounded-full bg-black/30 border border-white/10 px-2 py-1">
-        <span className="text-[6px] font-mono text-white/40">GET</span>
-        <span className="text-[6px] font-mono text-white/70">/api/v1/projects</span>
-        <span className="ml-auto text-[6px] font-mono text-emerald-300">200 OK - 42ms</span>
+        <span className="text-[8px] font-mono text-[#F0F3FF]/78">GET</span>
+        <span className="text-[8px] font-mono text-white/70">/api/v1/projects</span>
+        <span className="ml-auto text-[8px] font-mono text-emerald-300">200 OK - 42ms</span>
       </div>
     </div>
   );
@@ -1004,16 +1657,16 @@ function DatabaseVisual() {
   return (
     <div className="absolute inset-0 p-3 lg:p-4 flex flex-col">
       <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-[7px] font-mono tracking-[0.08em] text-white/50 uppercase"><span className="w-4 h-4 rounded bg-[#336791] flex items-center justify-center text-[7px] font-black text-white">◈</span> PostgreSQL - RLS Enabled</span>
-        <span className="text-[6px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/20 text-emerald-300">migrated</span>
+        <span className="flex items-center gap-1.5 text-[9px] font-mono tracking-[0.08em] text-[#F0F3FF]/82 uppercase"><span className="w-4 h-4 rounded bg-[#336791] flex items-center justify-center text-[9px] font-black text-white">◈</span> PostgreSQL - RLS Enabled</span>
+        <span className="text-[8px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/20 text-emerald-300">migrated</span>
       </div>
       <div className="mt-2.5 flex-1 grid grid-cols-[1.15fr_0.85fr] gap-2.5">
         <div className="rounded-[10px] bg-black/40 border border-white/10 overflow-hidden flex flex-col">
           <div className="h-5 bg-white/5 flex items-center px-2 gap-1">
-            <span className="text-[6px] font-mono text-white/60">proyek_web</span>
-            <span className="ml-auto text-[5px] font-mono px-1 py-0.5 rounded bg-white/10 text-white/50">12 rows</span>
+            <span className="text-[8px] font-mono text-white/60">proyek_web</span>
+            <span className="ml-auto text-[8px] font-mono px-1 py-0.5 rounded bg-white/10 text-[#F0F3FF]/82">12 rows</span>
           </div>
-          <div className="px-2 py-1.5 grid grid-cols-[16px_1fr_36px] gap-1 text-[5.5px] font-mono text-white/30 uppercase tracking-[0.06em]">
+          <div className="px-2 py-1.5 grid grid-cols-[16px_1fr_36px] gap-1 text-[8px] font-mono text-[#F0F3FF]/70 uppercase tracking-[0.06em]">
             <span>#</span><span>name</span><span className="text-right">date</span>
           </div>
           <div className="px-1 space-y-0.5">
@@ -1022,34 +1675,40 @@ function DatabaseVisual() {
               ["2", "SIPENS", "2024"],
               ["3", "Portfolio", "2026"],
             ].map((r) => (
-              <div key={r[0]} className="grid grid-cols-[16px_1fr_36px] gap-1 items-center rounded bg-white/5 px-1 py-1 text-[6px] font-mono text-white/70">
-                <span className="text-white/30">{r[0]}</span><span className="truncate">{r[1]}</span><span className="text-right text-white/40">{r[2]}</span>
+              <div key={r[0]} className="grid grid-cols-[16px_1fr_36px] gap-1 items-center rounded bg-white/5 px-1 py-1 text-[8px] font-mono text-white/70">
+                <span className="text-[#F0F3FF]/70">{r[0]}</span><span className="truncate">{r[1]}</span><span className="text-right text-[#F0F3FF]/78">{r[2]}</span>
               </div>
             ))}
           </div>
-          <div className="mt-auto h-5 bg-white/5 flex items-center px-2 gap-1 text-[5px] font-mono text-white/40">
+          <div className="mt-auto h-5 bg-white/5 flex items-center px-2 gap-1 text-[8px] font-mono text-[#F0F3FF]/78">
             <span className="w-1 h-1 rounded-full bg-emerald-400" /> RLS - Storage - Realtime
           </div>
         </div>
         <div className="flex flex-col gap-2">
           <div className="rounded-[10px] bg-white p-2">
-            <div className="text-[6px] font-mono tracking-[0.08em] text-black/40 uppercase">Schema</div>
+            <div className="text-[8px] font-mono tracking-[0.08em] text-black/40 uppercase">Schema</div>
             <div className="mt-1 space-y-1">
-              <div className="flex items-center gap-1 text-[6px] font-mono"><span className="w-1 h-1 rounded-full bg-[#FF4D2E]" /> id <span className="ml-auto text-black/30">uuid PK</span></div>
-              <div className="flex items-center gap-1 text-[6px] font-mono"><span className="w-1 h-1 rounded-full bg-[#336791]" /> name <span className="ml-auto text-black/30">text</span></div>
-              <div className="flex items-center gap-1 text-[6px] font-mono"><span className="w-1 h-1 rounded-full bg-emerald-500" /> date <span className="ml-auto text-black/30">timestamptz</span></div>
+              <div className="flex items-center gap-1 text-[8px] font-mono"><span className="w-1 h-1 rounded-full bg-[#FF4D2E]" /> id <span className="ml-auto text-black/30">uuid PK</span></div>
+              <div className="flex items-center gap-1 text-[8px] font-mono"><span className="w-1 h-1 rounded-full bg-[#336791]" /> name <span className="ml-auto text-black/30">text</span></div>
+              <div className="flex items-center gap-1 text-[8px] font-mono"><span className="w-1 h-1 rounded-full bg-emerald-500" /> date <span className="ml-auto text-black/30">timestamptz</span></div>
             </div>
             <div className="mt-2 h-1 w-full rounded bg-black/5" />
             <div className="mt-1 h-1 w-2/3 rounded bg-black/5" />
           </div>
           <div className="rounded-[10px] bg-[#0a0404] border border-white/10 p-2">
-            <div className="text-[6px] font-mono text-white/40">Query</div>
-            <div className="mt-1 font-mono text-[5.5px] leading-relaxed text-white/70">
+            <div className="text-[8px] font-mono text-[#F0F3FF]/78">Query</div>
+            <div className="mt-1 font-mono text-[8px] leading-relaxed text-white/70">
               SELECT *<br />FROM proyek_web<br />ORDER BY date DESC
             </div>
-            <div className="mt-1.5 text-[5px] font-mono text-emerald-300">↳ 42ms - indexed</div>
+            <div className="mt-1.5 text-[8px] font-mono text-emerald-300">↳ 42ms - indexed</div>
           </div>
         </div>
+      </div>
+      <div className="mt-2 hidden lg:flex items-center gap-1.5 rounded-[10px] bg-black/40 border border-white/10 px-2 py-1.5">
+        <span className="text-[8px] font-mono text-white/40">migration</span>
+        <span className="text-[8px] font-mono text-white/80 truncate">20260930_add_frameworks.sql</span>
+        <span className="text-[8px] font-mono text-white/40 truncate">bucket covers • public</span>
+        <span className="ml-auto shrink-0 text-[8px] font-mono text-emerald-300">applied</span>
       </div>
     </div>
   );
@@ -1061,15 +1720,15 @@ function Section({ id, k, title, desc, dark }) {
       id={id}
       className={`relative border-b border-white/[0.04] ${dark ? "bg-[#0c0a0a]" : "bg-[#0a0404]"}`}
     >
-      <div className="mx-auto max-w-[1600px] px-[6%] md:px-[4.5%] lg:px-[7.2%] py-16 lg:py-20">
+      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] py-16 lg:py-20">
         <div className="flex items-start justify-between gap-8">
           <div className="flex gap-4">
-            <span className="text-[11px] font-mono tracking-[0.12em] text-white/30 mt-1">({k})</span>
+            <span className="text-[11px] font-mono tracking-[0.12em] text-[#F0F3FF]/70 mt-1">({k})</span>
             <div>
               <h3 className="text-[26px] lg:text-[34px] tracking-[-0.03em] font-light">{title}</h3>
-              <p className="mt-2 text-sm text-white/50 max-w-[44ch]">{desc}</p>
-              <p className="mt-4 text-xs font-mono text-white/25">
-                Supabase → <code className="text-white/40">select * from {id}</code> (anon read)
+              <p className="mt-2 text-sm text-[#F0F3FF]/82 max-w-[44ch]">{desc}</p>
+              <p className="mt-4 text-xs font-mono text-[#F0F3FF]/60">
+                Supabase → <code className="text-[#F0F3FF]/78">select * from {id}</code> (anon read)
               </p>
             </div>
           </div>

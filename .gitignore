@@ -49,3 +49,8 @@ supabase/.temp
 
 # backup
 *.bak
+
+.vercel
+
+# playwright cli logs
+.playwright-cli/
