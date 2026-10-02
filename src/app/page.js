@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 
 const navItems = [
   { n: "01", label: "Tools", href: "#tools" },
@@ -122,6 +122,15 @@ export default function Home() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen, showIntro]);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
   return (
     <main className="relative min-h-screen bg-[#0a0404] overflow-x-clip [overscroll-behavior:none]">
       {}
@@ -146,15 +155,15 @@ export default function Home() {
 
       {}
       <header className="fixed top-0 inset-x-0 z-50 border-b border-white/[0.06] bg-[#0a0404]/60 backdrop-blur-[12px] isolate [transform:translateZ(0)] [backface-visibility:hidden]">
-        <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] h-[64px] flex items-center justify-between">
-          <a href="#" className="flex items-center group" aria-label="Home">
-            <span className="relative w-[38px] h-[38px] rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center shrink-0 overflow-visible p-[7px]">
+        <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] h-[76px] md:h-[92px] flex items-center justify-between">
+          <a href="#" className="flex items-center group min-h-[48px] min-w-[48px]" aria-label="Home">
+            <span className="relative w-[48px] h-[48px] md:w-[52px] md:h-[52px] rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center shrink-0 overflow-visible p-[8px]">
               <Image
                 src="/images/logo-r.webp"
                 alt="R logo"
-                width={24}
-                height={24}
-                className="object-contain w-[24px] h-[24px] shrink-0"
+                width={30}
+                height={30}
+                className="object-contain w-[28px] h-[28px] md:w-[30px] md:h-[30px] shrink-0"
                 priority
               />
             </span>
@@ -162,39 +171,87 @@ export default function Home() {
 
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-            className="relative w-10 h-10 rounded-full border border-white/10 bg-white/[0.04] flex flex-col items-center justify-center gap-[5px] hover:bg-white/[0.08] transition-colors"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            className="group relative w-[48px] h-[48px] md:w-[56px] md:h-[56px] rounded-full border border-white/10 bg-white/[0.04] flex flex-col items-center justify-center gap-[5px] overflow-hidden hover:bg-white/[0.06] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           >
             <span
-              className={`block w-[18px] h-[1.5px] bg-white transition-all duration-300 ${menuOpen ? "rotate-45 translate-y-[3.3px]" : ""}`}
+              aria-hidden
+              className={`absolute inset-0 rounded-full bg-white/[0.12] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${menuOpen ? "translate-y-0" : "translate-y-full group-hover:translate-y-0"}`}
             />
             <span
-              className={`block w-[18px] h-[1.5px] bg-white transition-all duration-300 ${menuOpen ? "-rotate-45 -translate-y-[3.3px]" : ""}`}
+              className={`relative z-10 block w-[25px] md:w-[29px] h-[1.5px] bg-white transition-all duration-300 ease-out motion-reduce:transition-none ${menuOpen ? "rotate-45 translate-y-[3.5px]" : "group-hover:w-[19px] md:group-hover:w-[22px] group-hover:translate-x-[3px] md:group-hover:translate-x-[3.5px]"}`}
+            />
+            <span
+              className={`relative z-10 block w-[25px] md:w-[29px] h-[2px] bg-white transition-all duration-300 ease-out motion-reduce:transition-none ${menuOpen ? "-rotate-45 -translate-y-[3.25px]" : "group-hover:w-[19px] md:group-hover:w-[22px] group-hover:-translate-x-[3px] md:group-hover:-translate-x-[3.5px]"}`}
             />
           </button>
         </div>
       </header>
 
-      {}
       <div
-        className={`fixed inset-0 z-40 bg-[#080405]/95 backdrop-blur-xl pt-[64px] transition-opacity duration-300 ${menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        className={`fixed inset-0 z-40 ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+        aria-hidden={!menuOpen}
       >
-        <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] py-10">
-          {navItems.map((item) => (
-            <a
-              key={item.n}
-              href={item.href}
+        <div
+          onClick={() => setMenuOpen(false)}
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${menuOpen ? "opacity-100" : "opacity-0"}`}
+        />
+        <aside
+          className={`absolute top-0 right-0 h-full w-full sm:w-[420px] lg:w-[480px] bg-[#0B0B0C] border-l border-white/10 flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${menuOpen ? "translate-x-0" : "translate-x-full"}`}
+          role="dialog"
+          aria-label="Site menu"
+        >
+          <div className="h-[76px] md:h-[92px] shrink-0 flex items-center justify-between px-6 lg:px-8 border-b border-white/10">
+            <p className="flex items-center gap-2.5 text-[14px] font-mono font-medium tracking-[0.14em] text-white/85">
+              <span className="w-2 h-2 bg-[#FF4D2E]" aria-hidden />
+              MENU
+            </p>
+            <button
               onClick={() => setMenuOpen(false)}
-              className="flex items-baseline gap-4 py-4 border-b border-white/5 text-[30px] tracking-[-0.03em] font-light hover:text-white transition-colors group"
+              aria-label="Close menu"
+              tabIndex={menuOpen ? 0 : -1}
+              className="w-11 h-11 rounded-full border border-white/15 flex items-center justify-center text-white text-[18px] leading-none hover:bg-white hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
             >
-              <span className="text-[11px] font-mono text-[#F0F3FF]/75 tracking-[0.08em]">({item.n})</span>
-              <span className="group-hover:translate-x-2 transition-transform duration-300">{item.label}</span>
-            </a>
-          ))}
-          <p className="mt-8 text-sm leading-6 text-white/45 max-w-[32ch]">
-            Crafting web experiences & logic solutions. Available for collaboration - let’s build something clean and fast.
-          </p>
-        </div>
+              <span aria-hidden>✕</span>
+            </button>
+          </div>
+
+          <nav className="flex-1 overflow-y-auto px-6 lg:px-8 py-4">
+            {navItems.map((item) => (
+              <a
+                key={item.n}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                tabIndex={menuOpen ? 0 : -1}
+                className="group flex items-center py-5 lg:py-6 border-b border-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-sm"
+              >
+                <span className="relative inline-block text-[48px] sm:text-[54px] lg:text-[60px] font-black uppercase leading-[0.9] tracking-[-0.02em] text-[#EDEDED] group-hover:text-white transition-colors">
+                  {item.label}
+                  <span aria-hidden className="absolute -bottom-1.5 lg:-bottom-2 left-0 h-[3px] lg:h-[4px] w-full bg-[#FF4D2E] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
+                </span>
+              </a>
+            ))}
+          </nav>
+
+          <div className="shrink-0 px-6 lg:px-8 pt-6 pb-8">
+            <p className="text-[13px] font-mono tracking-[0.12em] text-white/40">(SOCIALS)</p>
+            <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4">
+              <a href="https://www.instagram.com/a_rizal_i/" target="_blank" rel="noopener noreferrer" tabIndex={menuOpen ? 0 : -1} className="group relative inline-flex w-fit items-center gap-1.5 text-[22px] lg:text-[24px] font-medium tracking-[-0.01em] text-white/85 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-sm">
+                Instagram <span aria-hidden className="text-[15px] text-white/50 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all">↗</span>
+                <span aria-hidden className="absolute -bottom-1 left-0 h-[2px] w-full bg-[#FF4D2E] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
+              </a>
+              <a href="https://www.linkedin.com/in/rizal-maulana-airlangga-072b21346/" target="_blank" rel="noopener noreferrer" tabIndex={menuOpen ? 0 : -1} className="group relative inline-flex w-fit items-center gap-1.5 text-[22px] lg:text-[24px] font-medium tracking-[-0.01em] text-white/85 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-sm">
+                LinkedIn <span aria-hidden className="text-[15px] text-white/50 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all">↗</span>
+                <span aria-hidden className="absolute -bottom-1 left-0 h-[2px] w-full bg-[#FF4D2E] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
+              </a>
+              <a href="mailto:rizalmaulanaairlangga456@gmail.com" tabIndex={menuOpen ? 0 : -1} className="group relative inline-flex w-fit items-center gap-1.5 text-[22px] lg:text-[24px] font-medium tracking-[-0.01em] text-white/85 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-sm">
+                Email <span aria-hidden className="text-[15px] text-white/50 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all">↗</span>
+                <span aria-hidden className="absolute -bottom-1 left-0 h-[2px] w-full bg-[#FF4D2E] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
+              </a>
+            </div>
+          </div>
+        </aside>
       </div>
 
       {}
@@ -234,10 +291,10 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-overlay z-[1]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
 
         {}
-        <div className="relative z-10 flex-1 flex flex-col mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-[64px]">
+        <div className="relative z-10 flex-1 flex flex-col mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-[76px] md:pt-[92px]">
           {}
           <div className="pt-10 lg:pt-14">
-            <div className="inline-flex items-center gap-3 text-[12px] sm:text-[11px] tracking-[0.16em] uppercase font-mono text-white/60">
+            <div className="inline-flex items-center gap-3 text-[13px] sm:text-[13px] tracking-[0.16em] uppercase font-mono text-white/60">
               <span>Personal Portfolio</span>
               <span className="h-[1px] w-10 bg-white/25 hidden sm:block" />
               <span className="hidden sm:block w-1 h-1 rounded-full bg-white/60" />
@@ -262,19 +319,19 @@ export default function Home() {
                 <br />
                 <span className="text-white/60">& Logic Solutions</span>
               </h2>
-              <p className="mt-4 text-[13px] leading-6 text-white/45 max-w-[46ch]">
+              <p className="mt-4 text-[14px] leading-6 text-white/45 max-w-[46ch]">
                 Informatics student - React, Tailwind, Supabase. 12 tools, 9+11 achievements, 4 web projects.
               </p>
               <div className="mt-6 flex gap-3">
                 <a
                   href="#projects"
-                  className="inline-flex items-center px-5 py-2.5 rounded-full bg-white text-black text-[13px] font-medium hover:bg-white/90 transition-colors"
+                  className="inline-flex items-center px-5 py-2.5 rounded-full bg-white text-black text-[14px] font-medium hover:bg-white/90 transition-colors"
                 >
                   View Projects →
                 </a>
                 <a
                   href="#about"
-                  className="inline-flex items-center px-5 py-2.5 rounded-full border border-white/14 text-white/85 text-[13px] hover:bg-white/5 transition-colors"
+                  className="inline-flex items-center px-5 py-2.5 rounded-full border border-white/14 text-white/85 text-[14px] hover:bg-white/5 transition-colors"
                 >
                   About
                 </a>
@@ -287,7 +344,7 @@ export default function Home() {
                 <a
                   key={item.n}
                   href={item.href}
-                  className="group flex items-center gap-2 text-[11px] font-mono tracking-[0.08em] text-[#F0F3FF]/82 hover:text-white transition-colors"
+                  className="group flex items-center gap-2 text-[13px] font-mono tracking-[0.08em] text-[#F0F3FF]/82 hover:text-white transition-colors"
                 >
                   <span className="group-hover:-translate-x-1 transition-transform duration-300">
                     ({item.n}) {item.label}
@@ -295,7 +352,7 @@ export default function Home() {
                 </a>
               ))}
               <div className="mt-2 h-[1px] w-20 bg-white/10" />
-              <span className="text-[12px] tracking-[0.14em] text-[#F0F3FF]/60 font-mono">©2026 - PENS</span>
+              <span className="text-[13px] tracking-[0.14em] text-[#F0F3FF]/60 font-mono">©2026 - PENS</span>
             </div>
           </div>
         </div>
@@ -325,17 +382,23 @@ export default function Home() {
       {}
       <WhatCanIDo />
 
+      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
+
+      <WorkProcess />
+
+      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
+
       {/* LOCKED PACKAGE: Contact + RevealFooter — do not separate or edit independently without approval */}
       <section id="contact" className="relative bg-[#0a0404] border-y border-white/[0.06]">
         <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] py-8 lg:py-10 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
           <div className="text-center">
-            <p className="text-[11px] lg:text-[12px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Email Address</p>
-            <a href="mailto:rizalmaulanaairlangga456@gmail.com" className="mt-2 inline-block text-[15px] lg:text-[16px] font-medium tracking-[-0.01em] text-white hover:text-white/80 transition-colors break-all">
+            <p className="text-[13px] lg:text-[14px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Email Address</p>
+            <a href="mailto:rizalmaulanaairlangga456@gmail.com" className="mt-2 inline-block text-[16px] lg:text-[18px] font-medium tracking-[-0.01em] text-white hover:text-white/80 transition-colors break-all">
               rizalmaulanaairlangga456@gmail.com
             </a>
           </div>
           <div className="text-center">
-            <p className="text-[11px] lg:text-[12px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Social Links</p>
+            <p className="text-[13px] lg:text-[14px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Social Links</p>
             <div className="mt-3 flex items-center justify-center gap-3">
               <a href="https://www.instagram.com/a_rizal_i/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="opacity-90"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.6"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" strokeWidth="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
@@ -545,7 +608,7 @@ function LatestProject() {
   if (!projects.length) {
     return (
       <section className="relative bg-black border-y border-white/5 py-16 flex items-center justify-center">
-        <p className="text-xs font-mono tracking-[0.16em] text-[#F0F3FF]/70">LOADING LATEST PROJECTS...</p>
+        <p className="text-sm font-mono tracking-[0.16em] text-[#F0F3FF]/70">LOADING LATEST PROJECTS...</p>
       </section>
     );
   }
@@ -600,7 +663,7 @@ function ProjectCard({ project }) {
     const updateTarget = () => {
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
-      const header = 64;
+      const header = 92;
       const progress = Math.min(1, Math.max(0, (vh - rect.top) / (vh - header)));
       target = 1.16 - progress * 0.16;
       if (!raf) {
@@ -686,7 +749,7 @@ function ProjectCard({ project }) {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
         className="absolute top-6 lg:top-8 left-[4%] lg:left-[3.5%] z-10 will-change-transform"
       >
-        <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 backdrop-blur-[10px] px-3.5 py-1.5 text-[11px] font-mono tracking-[0.14em] text-white uppercase shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
+        <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 backdrop-blur-[10px] px-3.5 py-1.5 text-[13px] font-mono tracking-[0.14em] text-white uppercase shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
           {title.split(" ")[0]} <span className="text-white/60">- {year}</span>
         </p>
       </motion.div>
@@ -707,7 +770,7 @@ function ProjectCard({ project }) {
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true, amount: 0.35 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-          className="mt-4 lg:mt-5 inline-flex max-w-[58ch] rounded-[14px] border border-white/10 bg-black/40 backdrop-blur-[12px] px-5 py-3 text-[11px] sm:text-[12px] font-mono tracking-[0.10em] text-white leading-relaxed shadow-[0_8px_32px_rgba(0,0,0,0.38)] will-change-transform"
+          className="mt-4 lg:mt-5 inline-flex max-w-[58ch] rounded-[14px] border border-white/10 bg-black/40 backdrop-blur-[12px] px-5 py-3 text-[13px] sm:text-[14px] font-mono tracking-[0.10em] text-white leading-relaxed shadow-[0_8px_32px_rgba(0,0,0,0.38)] will-change-transform"
         >
           {subtitle}
         </motion.p>
@@ -723,7 +786,7 @@ function ProjectCard({ project }) {
       >
         <ul className="flex flex-col gap-[4px] rounded-[12px] border border-white/10 bg-black/30 backdrop-blur-[10px] px-3.5 py-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
           {frameworks.slice(0, 5).map((fw) => (
-            <li key={fw} className="text-[11px] sm:text-[12px] font-mono tracking-[0.08em] text-white leading-5 uppercase">
+            <li key={fw} className="text-[13px] sm:text-[14px] font-mono tracking-[0.08em] text-white leading-5 uppercase">
               {fw}
             </li>
           ))}
@@ -736,7 +799,7 @@ function ProjectCard({ project }) {
         transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.18 }}
         className="absolute bottom-6 lg:bottom-8 right-[4%] lg:right-[3.5%] z-10 will-change-transform"
       >
-        <p className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-[10px] px-3 py-1.5 text-[11px] sm:text-[12px] font-mono tracking-[0.08em] text-white shadow-[0_4px_16px_rgba(0,0,0,0.25)]">YR/ {year}</p>
+        <p className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-[10px] px-3 py-1.5 text-[13px] sm:text-[14px] font-mono tracking-[0.08em] text-white shadow-[0_4px_16px_rgba(0,0,0,0.25)]">YR/ {year}</p>
       </motion.div>
 
       {}
@@ -744,7 +807,7 @@ function ProjectCard({ project }) {
         className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#FF4D2E] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
       >
         <span className="text-[20px] font-black">→</span>
-        <span className="text-[12px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
+        <span className="text-[13px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
       </div>
     </section>
   );
@@ -779,8 +842,8 @@ function ProjectYearBar() {
           className="flex items-center gap-3 group shrink-0"
         >
           <span className="w-10 h-10 rounded-[10px] bg-[#FF4D2E] flex items-center justify-center text-white text-[18px] group-hover:scale-105 transition-transform">→</span>
-          <span className="text-[14px] lg:text-[15px] font-medium tracking-[-0.02em] text-white">More Projects</span>
-          <sup className="text-[12px] font-mono text-[#F0F3FF]/78 -top-1">{count}</sup>
+          <span className="text-[15px] lg:text-[16px] font-medium tracking-[-0.02em] text-white">More Projects</span>
+          <sup className="text-[13px] font-mono text-[#F0F3FF]/78 -top-1">{count}</sup>
         </a>
       </div>
     </section>
@@ -795,7 +858,7 @@ function WhoAmI() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.04),transparent_60%)]" />
       <div className="relative mx-auto max-w-[1160px] px-[3.2%] md:px-[1.6%] lg:px-[14px]">
         {}
-        <p className="text-center text-[11px] lg:text-[12px] font-medium tracking-[0.16em] text-[#F0F3FF]/82 uppercase">
+        <p className="text-center text-[13px] lg:text-[14px] font-medium tracking-[0.16em] text-[#F0F3FF]/82 uppercase">
           Who Am I
         </p>
         {}
@@ -832,7 +895,7 @@ function WhoAmI() {
 
           {}
           <div className="relative rounded-[20px] lg:rounded-[24px] bg-white/[0.04] backdrop-blur-[12px] border border-white/[0.07] shadow-[0_16px_48px_rgba(0,0,0,0.45)] p-6 sm:p-7 lg:p-8 flex flex-col">
-            <p className="text-[13px] font-semibold tracking-[-0.02em] text-white">About me</p>
+            <p className="text-[14px] font-semibold tracking-[-0.02em] text-white">About me</p>
             <div className="mt-6 lg:mt-8 space-y-4 text-[18px] lg:text-[20px] leading-[1.75] text-white/60">
               <p>
                 I’m Rizal Maulana Airlangga, an IT student and aspiring fullstack developer interested in building modern
@@ -976,7 +1039,7 @@ function ToolsMarquee() {
     return (
       <section id="tools" className="relative bg-[#080405] border-y border-white/[0.06] py-10">
         <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
-          <p className="text-xs font-mono tracking-[0.16em] text-[#F0F3FF]/70 animate-pulse">LOADING TOOLS...</p>
+          <p className="text-sm font-mono tracking-[0.16em] text-[#F0F3FF]/70 animate-pulse">LOADING TOOLS...</p>
         </div>
       </section>
     );
@@ -993,7 +1056,7 @@ function ToolsMarquee() {
       {}
       <div className="relative z-20 mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-12 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
-          <p className="text-[11px] lg:text-[12px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
+          <p className="text-[13px] lg:text-[14px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#FF4D2E] shadow-[0_0_12px_rgba(255,77,46,0.6)]" />
             Stack • {tools.length} tools
           </p>
@@ -1001,12 +1064,12 @@ function ToolsMarquee() {
             Tools I <span className="font-black tracking-[-0.06em]">rely on</span>
           </h2>
         </div>
-        <p className="hidden md:block text-[11px] font-mono tracking-[0.08em] text-[#F0F3FF]/60 uppercase max-w-[48ch] leading-relaxed">
+        <p className="hidden md:block text-[13px] font-mono tracking-[0.08em] text-[#F0F3FF]/60 uppercase max-w-[48ch] leading-relaxed">
           Hover bar to slow • hover icon to pause & read
         </p>
       </div>
 
-      <div className="relative pb-8 lg:pb-10 space-y-3 overflow-visible isolate" style={{ contain: "layout style" }}>
+      <div className="relative z-30 pb-8 lg:pb-10 space-y-3 overflow-visible isolate" style={{ contain: "layout style" }}>
         {}
         <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
           <div className="absolute inset-y-0 left-0 w-[6%] lg:w-[10%] bg-gradient-to-r from-[#080405] to-transparent" />
@@ -1248,14 +1311,14 @@ function WhatCanIDo() {
     <section id="services" className="relative bg-black border-y border-white/[0.06]">
             <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-14 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
-          <p className="text-[12px] lg:text-[13px] font-mono font-semibold tracking-[0.16em] text-white/60 uppercase flex items-center justify-center gap-2">
+          <p className="text-[13px] lg:text-[14px] font-mono font-semibold tracking-[0.16em] text-white/60 uppercase flex items-center justify-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#FF4D2E]" /> Services
           </p>
           <h2 className="mt-3 text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[88px] font-black tracking-[-0.06em] leading-[0.9] text-white">
             What can I do?
           </h2>
         </div>
-        <p className="hidden md:block text-[11px] font-mono tracking-[0.12em] text-[#F0F3FF]/60 uppercase max-w-[48ch] leading-relaxed">
+        <p className="hidden md:block text-[13px] font-mono tracking-[0.12em] text-[#F0F3FF]/60 uppercase max-w-[48ch] leading-relaxed">
           4 core capabilities, frontend, mobile, backend and database
         </p>
       </div>
@@ -1330,10 +1393,10 @@ function WhatCanIDo() {
                         {item.num === "03" && <BackendVisual />}
                         {item.num === "04" && <DatabaseVisual />}
                         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                          <span className="text-[12px] font-mono tracking-[0.14em] text-white/70 uppercase bg-black/35 backdrop-blur px-2.5 py-1 rounded-full border border-white/10">
+                          <span className="text-[13px] font-mono tracking-[0.14em] text-white/70 uppercase bg-black/35 backdrop-blur px-2.5 py-1 rounded-full border border-white/10">
                             0{item.num.slice(1)} • {item.title.split(" ")[0]}
                           </span>
-                          <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center text-[12px]">→</span>
+                          <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center text-[13px]">→</span>
                         </div>
                       </motion.div>
                       </motion.div>
@@ -1379,7 +1442,7 @@ function WhatCanIDo() {
                           <p className="mt-4 text-[16px] xl:text-[18px] leading-relaxed text-[#F0F3FF]/82 max-w-[46ch]">{item.desc}</p>
                           <div className="mt-5 flex flex-wrap gap-2">
                             {item.tags.map((tag) => (
-                              <span key={tag} className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[12.5px] font-medium tracking-[-0.01em] text-white/70">
+                              <span key={tag} className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[14px] font-medium tracking-[-0.01em] text-white/70">
                                 {tag}
                               </span>
                             ))}
@@ -1439,7 +1502,7 @@ function WhatCanIDo() {
                   >
                     <div className="pb-7 pt-2">
                       <div className="flex items-center gap-3 mb-4">
-                        <span className="text-[13px] font-mono tracking-[0.08em] text-[#F0F3FF]/75">
+                        <span className="text-[14px] font-mono tracking-[0.08em] text-[#F0F3FF]/75">
                           {item.num}
                           <span className="text-[#FF3B30]">.</span>
                         </span>
@@ -1451,10 +1514,10 @@ function WhatCanIDo() {
                         {item.num === "03" && <BackendVisual />}
                         {item.num === "04" && <DatabaseVisual />}
                         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                          <span className="text-[12px] font-mono tracking-[0.14em] text-white/70 uppercase bg-black/35 backdrop-blur px-2.5 py-1 rounded-full border border-white/10">
+                          <span className="text-[13px] font-mono tracking-[0.14em] text-white/70 uppercase bg-black/35 backdrop-blur px-2.5 py-1 rounded-full border border-white/10">
                             0{item.num.slice(1)} • {item.title.split(" ")[0]}
                           </span>
-                          <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center text-[12px]">→</span>
+                          <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center text-[13px]">→</span>
                         </div>
                       </div>
 
@@ -1464,7 +1527,7 @@ function WhatCanIDo() {
                       </div>
                       <div className="mt-5 flex flex-wrap gap-2">
                         {item.tags.map((tag) => (
-                          <span key={tag} className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[12px] font-medium tracking-[-0.01em] text-white/70">
+                          <span key={tag} className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[14px] font-medium tracking-[-0.01em] text-white/70">
                             {tag}
                           </span>
                         ))}
@@ -1476,9 +1539,173 @@ function WhatCanIDo() {
             );
           })}
         </div>
-        <p className="mt-4 text-[11px] font-mono tracking-[0.08em] text-white/20">Hover any row to reveal</p>
+        <p className="mt-4 text-[13px] font-mono tracking-[0.08em] text-white/20">Hover any row to reveal</p>
       </div>
     </section>
+  );
+}
+
+function WorkProcess() {
+  const wrapRef = useRef(null);
+  const [scrub, setScrub] = useState(false);
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1280px)");
+    const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => {
+      setReduced(rm.matches);
+      setScrub(mq.matches && !rm.matches);
+    };
+    sync();
+    mq.addEventListener("change", sync);
+    rm.addEventListener("change", sync);
+    return () => {
+      mq.removeEventListener("change", sync);
+      rm.removeEventListener("change", sync);
+    };
+  }, []);
+
+  const { scrollYProgress } = useScroll({ target: wrapRef, offset: ["start start", "end end"] });
+  const progress = scrollYProgress;
+
+  const steps = [
+    {
+      num: "01",
+      title: "Discovery & Planning",
+      desc: "I start by understanding your goals, audience, and scope, then break the work into clear milestones.",
+      img: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80",
+      alt: "Planning session with laptop and notes",
+    },
+    {
+      num: "02",
+      title: "Design & Prototype",
+      desc: "Wireframes and interface drafts, iterated quickly until the flow feels right on every screen.",
+      img: "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=800&q=80",
+      alt: "Interface design workspace",
+    },
+    {
+      num: "03",
+      title: "Build & Integrate",
+      desc: "Frontend, backend, and database built as one system with clean and maintainable code.",
+      img: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
+      alt: "Code editor with project source",
+    },
+    {
+      num: "04",
+      title: "Launch & Support",
+      desc: "Deployed, tested, and handed over with notes, plus fixes and improvements after launch.",
+      img: "https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=800&q=80",
+      alt: "Rocket launching at liftoff",
+    },
+  ];
+
+  return (
+    <section id="process" className="relative bg-[#0a0404] border-y border-white/[0.06]">
+      <div ref={wrapRef} className="relative xl:h-[280vh]">
+        <div className="xl:sticky xl:top-0 xl:h-screen xl:overflow-hidden flex flex-col justify-center py-10 xl:py-0">
+      <div className="mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-14 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
+        <div className="flex flex-col items-center">
+          <p className="text-[13px] lg:text-[14px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
+            <span className="text-[#FF4D2E]" aria-hidden>✦</span> Work Process
+          </p>
+          <h2 className="mt-3 text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[88px] font-black tracking-[-0.06em] leading-[0.9] text-white">
+            FROM VISION TO REALITY
+          </h2>
+        </div>
+        <p className="hidden md:block text-[13px] font-mono tracking-[0.12em] text-[#F0F3FF]/60 uppercase max-w-[48ch] leading-relaxed">
+          4 steps, from first idea to launched product
+        </p>
+      </div>
+
+      <div className="mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pb-10 lg:pb-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5">
+          {steps.map((s, i) => (
+            <StepCard key={s.num} s={s} i={i} progress={progress} scrub={scrub} reduced={reduced} />
+          ))}
+        </div>
+      </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const CARD_DEF = [
+  { start: 0.0, revealEnd: 0.2, finalStart: 0.2, end: 0.2, fromY: 200, midY: 0, restY: 0 },
+  { start: 0.12, revealEnd: 0.38, finalStart: 0.78, end: 0.94, fromY: 300, midY: 48, restY: 0 },
+  { start: 0.44, revealEnd: 0.7, finalStart: 0.7, end: 0.7, fromY: 320, midY: 0, restY: 0 },
+  { start: 0.56, revealEnd: 0.78, finalStart: 0.78, end: 0.94, fromY: 480, midY: 48, restY: 0 },
+];
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+
+function StepCard({ s, i, progress, scrub, reduced }) {
+  const def = CARD_DEF[i];
+  const t = useTransform(progress, [def.start, def.end], [0, 1]);
+  const y = useTransform(t, (v) => {
+    const c = clamp01(v);
+    const span = def.end - def.start;
+    const j1 = span > 0 ? (def.revealEnd - def.start) / span : 1;
+    const j2 = span > 0 ? (def.finalStart - def.start) / span : 1;
+    if (c <= j1) {
+      const k = j1 > 0 ? clamp01(c / j1) : 1;
+      return def.fromY + (def.midY - def.fromY) * easeOutCubic(k);
+    }
+    if (c <= j2) return def.midY;
+    const k = clamp01((c - j2) / (1 - j2));
+    return def.midY + (def.restY - def.midY) * easeOutCubic(k);
+  });
+  const r = (def.revealEnd - def.start) / (def.end - def.start);
+  const opacity = useTransform(t, (v) => clamp01(v / (0.3 * r)));
+  if (!scrub) {
+    return (
+      <motion.article
+        initial={reduced ? { opacity: 0 } : { y: 48, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true, amount: 0.25 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: reduced ? 0 : i * 0.12 }}
+        className="group relative rounded-[20px] bg-[#171414] border border-white/[0.08] p-5 lg:p-6 flex flex-col hover:border-white/[0.16] transition-colors duration-300"
+      >
+        <CardBody s={s} />
+      </motion.article>
+    );
+  }
+  return (
+    <motion.article
+      style={{ y, opacity }}
+      className="group relative rounded-[20px] bg-[#171414] border border-white/[0.08] p-5 lg:p-6 flex flex-col hover:border-white/[0.16] transition-colors duration-300 will-change-transform"
+    >
+      <CardBody s={s} />
+    </motion.article>
+  );
+}
+
+function CardBody({ s }) {
+  return (
+    <>
+              <span aria-hidden className="absolute -top-[1px] left-8 h-[6px] w-[60px] rounded-b-[3px] bg-[#FF4D2E]" />
+              <div className="flex items-baseline gap-3">
+                <span className="text-[14px] font-mono tracking-[0.08em] text-[#F0F3FF]/60 shrink-0">{"//"}{s.num}</span>
+                <h3 className="text-[26px] lg:text-[30px] font-semibold tracking-[-0.02em] text-white leading-[1.1]">{s.title}</h3>
+              </div>
+              <div className="my-4 h-px bg-white/[0.08]" aria-hidden />
+              <div className="relative h-[280px] lg:h-[300px] rounded-[14px] overflow-hidden border border-white/[0.06]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={s.img}
+                  alt={s.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none" aria-hidden />
+                <div className="absolute inset-x-3 bottom-3 rounded-[14px] border border-white/[0.16] bg-black/45 backdrop-blur-[16px] shadow-[0_12px_32px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.12)] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/[0.10] to-transparent pointer-events-none" aria-hidden />
+                  <p className="relative p-4 text-[16px] lg:text-[17px] leading-[1.6] text-white/85">{s.desc}</p>
+                </div>
+              </div>
+    </>
   );
 }
 
@@ -1723,16 +1950,16 @@ function Section({ id, k, title, desc, dark }) {
       <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] py-16 lg:py-20">
         <div className="flex items-start justify-between gap-8">
           <div className="flex gap-4">
-            <span className="text-[11px] font-mono tracking-[0.12em] text-[#F0F3FF]/70 mt-1">({k})</span>
+            <span className="text-[13px] font-mono tracking-[0.12em] text-[#F0F3FF]/70 mt-1">({k})</span>
             <div>
               <h3 className="text-[26px] lg:text-[34px] tracking-[-0.03em] font-light">{title}</h3>
               <p className="mt-2 text-sm text-[#F0F3FF]/82 max-w-[44ch]">{desc}</p>
-              <p className="mt-4 text-xs font-mono text-[#F0F3FF]/60">
+              <p className="mt-4 text-sm font-mono text-[#F0F3FF]/60">
                 Supabase → <code className="text-[#F0F3FF]/78">select * from {id}</code> (anon read)
               </p>
             </div>
           </div>
-          <span className="hidden md:block text-[11px] font-mono text-white/20">→</span>
+          <span className="hidden md:block text-[13px] font-mono text-white/20">→</span>
         </div>
       </div>
     </section>
