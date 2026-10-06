@@ -123,7 +123,7 @@ export default function MoreProjects({ projects }) {
               <div className="project-overlay absolute inset-0 bg-black/35 group-hover:bg-black/25 transition-colors duration-300" />
               <div className="absolute inset-0 p-6 lg:p-8 flex flex-col justify-center items-center text-center text-[#F0F3FF]">
                 <p className="text-[22px] lg:text-[28px] font-semibold tracking-[-0.02em] leading-tight">{p.name}</p>
-                <p className="mt-2 text-[13px] lg:text-[14px] font-mono tracking-[0.08em] text-[#F0F3FF]/75">{p.project_type || ""}</p>
+                <p className="mt-2 text-[14px] lg:text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/75">{p.project_type || ""}</p>
               </div>
               <div className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#FF4D2E] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                 <span className="text-[20px] font-black">→</span>
