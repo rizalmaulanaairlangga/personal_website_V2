@@ -95,13 +95,14 @@ export default function SiteNav() {
             className="flex items-center group min-h-[48px] min-w-[48px]"
             aria-label="Home"
           >
-            <span className="relative w-[48px] h-[48px] md:w-[52px] md:h-[52px] rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center shrink-0 overflow-visible p-[8px]">
+            <span className="site-logo relative w-[48px] h-[48px] md:w-[52px] md:h-[52px] rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center shrink-0 overflow-hidden p-[8px]">
+              <span aria-hidden className="site-logo-wipe" />
               <Image
                 src="/images/logo-r.webp"
                 alt="R logo"
                 width={30}
                 height={30}
-                className="object-contain w-[28px] h-[28px] md:w-[30px] md:h-[30px] shrink-0"
+                className="relative z-10 object-contain w-[28px] h-[28px] md:w-[30px] md:h-[30px] shrink-0"
                 priority
               />
             </span>
@@ -142,7 +143,7 @@ export default function SiteNav() {
         >
           <div className="h-[76px] md:h-[92px] shrink-0 flex items-center justify-between px-6 lg:px-8 border-b border-white/10">
             <p className="flex items-center gap-2.5 text-[14px] font-mono font-medium tracking-[0.14em] text-white/85">
-              <span className="w-2 h-2 bg-[#FF4D2E]" aria-hidden />
+              <span className="w-2 h-2 bg-[#7AB8E8]" aria-hidden />
               MENU
             </p>
             <button
@@ -169,10 +170,10 @@ export default function SiteNav() {
                 >
                   <span className="relative inline-block text-[34px] sm:text-[40px] lg:text-[44px] font-black uppercase leading-[0.9] tracking-[-0.02em] text-[#EDEDED] group-hover:text-white transition-colors">
                     {item.label}
-                    <span aria-hidden className="absolute -bottom-1.5 lg:-bottom-2 left-0 h-[3px] lg:h-[4px] w-full bg-[#FF4D2E] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
+                    <span aria-hidden className="absolute -bottom-1.5 lg:-bottom-2 left-0 h-[3px] lg:h-[4px] w-full bg-[#7AB8E8] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
                   </span>
                   {active && (
-                    <span aria-hidden className="w-[10px] h-[10px] bg-[#FF4D2E] shrink-0" />
+                    <span aria-hidden className="w-[10px] h-[10px] bg-[#7AB8E8] shrink-0" />
                   )}
                 </a>
               );
@@ -184,15 +185,15 @@ export default function SiteNav() {
             <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4">
               <a href="https://www.instagram.com/a_rizal_i/" target="_blank" rel="noopener noreferrer" tabIndex={menuOpen ? 0 : -1} className="group relative inline-flex w-fit items-center gap-1.5 text-[20px] lg:text-[22px] font-medium tracking-[-0.01em] text-white/85 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-sm">
                 Instagram <span aria-hidden className="text-[15px] text-white/50 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all">↗</span>
-                <span aria-hidden className="absolute -bottom-1 left-0 h-[2px] w-full bg-[#FF4D2E] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
+                <span aria-hidden className="absolute -bottom-1 left-0 h-[2px] w-full bg-[#7AB8E8] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
               </a>
               <a href="https://www.linkedin.com/in/rizal-maulana-airlangga-072b21346/" target="_blank" rel="noopener noreferrer" tabIndex={menuOpen ? 0 : -1} className="group relative inline-flex w-fit items-center gap-1.5 text-[20px] lg:text-[22px] font-medium tracking-[-0.01em] text-white/85 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-sm">
                 LinkedIn <span aria-hidden className="text-[15px] text-white/50 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all">↗</span>
-                <span aria-hidden className="absolute -bottom-1 left-0 h-[2px] w-full bg-[#FF4D2E] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
+                <span aria-hidden className="absolute -bottom-1 left-0 h-[2px] w-full bg-[#7AB8E8] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
               </a>
               <a href="mailto:rizalmaulanaairlangga456@gmail.com" tabIndex={menuOpen ? 0 : -1} className="group relative inline-flex w-fit items-center gap-1.5 text-[20px] lg:text-[22px] font-medium tracking-[-0.01em] text-white/85 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-sm">
                 Email <span aria-hidden className="text-[15px] text-white/50 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all">↗</span>
-                <span aria-hidden className="absolute -bottom-1 left-0 h-[2px] w-full bg-[#FF4D2E] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
+                <span aria-hidden className="absolute -bottom-1 left-0 h-[2px] w-full bg-[#7AB8E8] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
               </a>
             </div>
           </div>

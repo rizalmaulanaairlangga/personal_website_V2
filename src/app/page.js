@@ -7,11 +7,11 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 
 import SiteNav from "@/components/SiteNav";
 
-const navItems = [
-  { n: "01", label: "Tools", href: "#tools" },
-  { n: "02", label: "About", href: "#about" },
-  { n: "03", label: "Services", href: "#services" },
-  { n: "04", label: "Contact", href: "#contact" },
+const roleItems = [
+  { n: "01", label: "Frontend Development" },
+  { n: "02", label: "Mobile Development" },
+  { n: "03", label: "Backend Development" },
+  { n: "04", label: "Web Application Development" },
 ];
 
 export default function Home() {
@@ -197,7 +197,7 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-overlay z-[1]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
 
         {}
-        <div className="relative z-10 flex-1 flex flex-col mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-[76px] md:pt-[92px]">
+        <div className="relative z-10 flex-1 flex flex-col mx-auto w-full max-w-[1440px] px-6 sm:px-10 lg:px-[clamp(2.5rem,6vw,5.5rem)] pt-[76px] md:pt-[92px]">
           {}
           <div className="pt-10 lg:pt-14">
             <div className="inline-flex items-center gap-3 text-[14px] sm:text-[14px] tracking-[0.16em] uppercase font-mono text-white/60">
@@ -225,38 +225,42 @@ export default function Home() {
                 <br />
                 <span className="text-white/60">& Logic Solutions</span>
               </h2>
-              <p className="mt-4 text-[15px] leading-7 text-white/60 max-w-[46ch]">
-                Informatics student - React, Tailwind, Supabase. 12 tools, 9+11 achievements, 4 web projects.
-              </p>
-              <div className="mt-6 flex gap-3">
+              <div className="mt-7 lg:mt-8 flex flex-wrap items-center gap-3">
                 <a
                   href="#projects"
-                  className="inline-flex items-center px-5 py-2.5 rounded-full bg-white text-black text-[15px] font-medium hover:bg-white/90 transition-colors"
+                  className="hero-cta hero-cta-primary"
                 >
-                  View Projects →
+                  <span className="cta-label">View Projects</span>
+                  <span aria-hidden="true" className="cta-arrow-viewport">
+                    <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
+                    <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
+                  </span>
                 </a>
                 <a
                   href="#about"
-                  className="inline-flex items-center px-5 py-2.5 rounded-full border border-white/14 text-white/85 text-[15px] hover:bg-white/5 transition-colors"
+                  className="hero-cta hero-cta-secondary"
                 >
-                  About
+                  <span className="cta-label">About</span>
+                  <span aria-hidden="true" className="cta-arrow-viewport">
+                    <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
+                    <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
+                  </span>
                 </a>
               </div>
             </div>
 
             {}
             <div className="hidden lg:flex flex-col items-end gap-[6px] text-right shrink-0 pb-1">
-              {navItems.map((item) => (
-                <a
-                  key={item.n}
-                  href={item.href}
-                  className="group flex items-center gap-2 text-[14px] font-mono tracking-[0.08em] text-[#F0F3FF]/82 hover:text-white transition-colors"
-                >
-                  <span className="group-hover:-translate-x-1 transition-transform duration-300">
+              <ul className="flex flex-col items-end gap-[6px]" aria-label="Areas of development">
+                {roleItems.map((item) => (
+                  <li
+                    key={item.n}
+                    className="text-[14px] font-mono tracking-[0.08em] text-white/50"
+                  >
                     ({item.n}) {item.label}
-                  </span>
-                </a>
-              ))}
+                  </li>
+                ))}
+              </ul>
               <div className="mt-2 h-[1px] w-20 bg-white/10" />
               <span className="text-[14px] tracking-[0.14em] text-[#F0F3FF]/60 font-mono">©2026 - PENS</span>
             </div>
@@ -420,6 +424,16 @@ function LatestProject() {
     let active = false;
     let hasPointer = false;
     let lastX = 0, lastY = 0;
+    const syncCircle = () => {
+      circle.style.transform = `translate3d(${cx - 112}px, ${cy - 112}px, 0)`;
+    };
+    const cardUnderPointer = () => {
+      if (!hasPointer) return null;
+      let el = null;
+      try { el = document.elementFromPoint(lastX, lastY); } catch { el = null; }
+      const card = el?.closest?.("[data-project-link]");
+      return card && container.contains(card) ? card : null;
+    };
     const tick = () => {
       raf = 0;
       cx += (mx - cx) * 0.18;
@@ -429,29 +443,26 @@ function LatestProject() {
         raf = requestAnimationFrame(tick);
       }
     };
-    const updateHoveredCard = (inside) => {
+    const updateHoveredCard = (card) => {
       const cards = container.querySelectorAll("[data-project-link]");
-      if (!inside || !hasPointer) {
-        cards.forEach((c) => c.removeAttribute("data-hovered"));
-        return;
-      }
-      const el = document.elementFromPoint(lastX, lastY);
-      const card = el?.closest?.("[data-project-link]");
       cards.forEach((c) => {
         if (c === card) c.setAttribute("data-hovered", "true");
         else c.removeAttribute("data-hovered");
       });
       if (card) setActiveLink(card.getAttribute("data-project-link") || "#");
     };
-    const checkScroll = () => {
-      if (!hasPointer) return;
-      const rect = container.getBoundingClientRect();
-      const inside = lastX >= rect.left && lastX <= rect.right && lastY >= rect.top && lastY <= rect.bottom;
+    const setActive = (inside) => {
       if (inside !== active) {
         active = inside;
         setCursorActive(inside);
       }
-      updateHoveredCard(inside);
+    };
+    const checkScroll = () => {
+      if (!hasPointer) return;
+      const card = cardUnderPointer();
+      setActive(!!card);
+      updateHoveredCard(card);
+      if (card && !raf) raf = requestAnimationFrame(tick);
     };
     let scrollRaf = 0;
     const onScroll = () => {
@@ -462,45 +473,77 @@ function LatestProject() {
       });
     };
     const onMove = (e) => {
+      const first = !hasPointer;
       mx = e.clientX;
       my = e.clientY;
       lastX = e.clientX;
       lastY = e.clientY;
       hasPointer = true;
-      const rect = container.getBoundingClientRect();
-      const inside = lastX >= rect.left && lastX <= rect.right && lastY >= rect.top && lastY <= rect.bottom;
-      if (inside !== active) {
-        active = inside;
-        setCursorActive(inside);
+      if (first) {
+        cx = mx;
+        cy = my;
+        syncCircle();
       }
-      if (inside) {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const card = el?.closest?.("[data-project-link]");
-        if (card) setActiveLink(card.getAttribute("data-project-link") || "#");
-      }
-      updateHoveredCard(inside);
+      const card = cardUnderPointer();
+      setActive(!!card);
+      updateHoveredCard(card);
       if (!raf) raf = requestAnimationFrame(tick);
     };
     const onGlobalMove = (e) => {
+      const first = !hasPointer;
       lastX = e.clientX;
       lastY = e.clientY;
       hasPointer = true;
+      if (first) {
+        mx = e.clientX;
+        my = e.clientY;
+        cx = mx;
+        cy = my;
+        syncCircle();
+      }
     };
-    const onEnter = () => { active = true; setCursorActive(true); };
-    const onLeave = () => { active = false; setCursorActive(false); };
+    const onEnter = (e) => {
+      if (e && typeof e.clientX === "number" && typeof e.clientY === "number") {
+        const first = !hasPointer;
+        mx = e.clientX;
+        my = e.clientY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        hasPointer = true;
+        if (first) {
+          cx = mx;
+          cy = my;
+          syncCircle();
+        }
+        const card = cardUnderPointer();
+        setActive(!!card);
+        updateHoveredCard(card);
+        if (card && !raf) raf = requestAnimationFrame(tick);
+        return;
+      }
+      if (!hasPointer) return;
+      checkScroll();
+    };
+    const onLeave = () => { setActive(false); updateHoveredCard(null); };
     container.addEventListener("mousemove", onMove, { passive: true });
     container.addEventListener("mouseenter", onEnter);
     container.addEventListener("mouseleave", onLeave);
     window.addEventListener("mousemove", onGlobalMove, { passive: true });
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
     window.addEventListener("resize", onScroll, { passive: true });
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(onScroll);
+      ro.observe(container);
+    }
     return () => {
       container.removeEventListener("mousemove", onMove);
       container.removeEventListener("mouseenter", onEnter);
       container.removeEventListener("mouseleave", onLeave);
       window.removeEventListener("mousemove", onGlobalMove);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onScroll, { capture: true });
       window.removeEventListener("resize", onScroll);
+      if (ro) ro.disconnect();
       if (raf) cancelAnimationFrame(raf);
       if (scrollRaf) cancelAnimationFrame(scrollRaf);
       try {
@@ -530,7 +573,7 @@ function LatestProject() {
         <div
           ref={cursorRef}
           onClick={() => activeLink && window.open(activeLink, "_blank")}
-          className={`hidden lg:flex fixed left-0 top-0 z-[60] w-[224px] h-[224px] rounded-full bg-[#FF4D2E] flex-col items-center justify-center gap-1 text-white shadow-[0_18px_50px_rgba(0,0,0,0.45)] will-change-transform pointer-events-none ${cursorActive ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
+          className={`hidden lg:flex fixed left-0 top-0 z-[60] w-[224px] h-[224px] rounded-full bg-[#7AB8E8] flex-col items-center justify-center gap-1 text-white shadow-[0_18px_50px_rgba(0,0,0,0.45)] will-change-transform pointer-events-none ${cursorActive ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
           style={{ transform: "translate3d(-112px,-112px,0)", transition: "opacity 200ms, transform 0ms" }}
         >
           <span className="text-[38px] font-black leading-none">→</span>
@@ -710,7 +753,7 @@ function ProjectCard({ project }) {
 
       {}
       <div
-        className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#FF4D2E] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+        className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#7AB8E8] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
       >
         <span className="text-[20px] font-black">→</span>
         <span className="text-[13px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
@@ -744,11 +787,16 @@ function ProjectYearBar() {
         <span className="text-[18px] lg:text-[20px] font-light tracking-[-0.02em] text-white whitespace-nowrap">{range}</span>
         <div className="flex-1 h-[1px] bg-white/15" />
         <a
-          href="#projects"
-          className="flex items-center gap-3 group shrink-0"
+          href="/work"
+          className="more-projects-link btn-motion flex items-center gap-3 group shrink-0"
         >
-          <span className="w-10 h-10 rounded-[10px] bg-[#FF4D2E] flex items-center justify-center text-white text-[18px] group-hover:scale-105 transition-transform">→</span>
-          <span className="text-[15px] lg:text-[16px] font-medium tracking-[-0.02em] text-white">More Projects</span>
+          <span className="w-10 h-10 rounded-[10px] bg-[#7AB8E8] flex items-center justify-center text-white text-[18px]">
+            <span aria-hidden="true" className="cta-arrow-viewport">
+              <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
+              <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
+            </span>
+          </span>
+          <span className="cta-label text-[15px] lg:text-[16px] font-medium tracking-[-0.02em]">More Projects</span>
           <sup className="text-[13px] font-mono text-[#F0F3FF]/78 -top-1">{count}</sup>
         </a>
       </div>
@@ -962,7 +1010,7 @@ function ToolsMarquee() {
       <div className="relative z-20 mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-12 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
           <p className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#FF4D2E] shadow-[0_0_12px_rgba(255,77,46,0.6)]" />
+            <span className="w-2 h-2 rounded-full bg-[#7AB8E8] shadow-[0_0_12px_rgba(122,184,232,0.6)]" />
             Stack • {tools.length} tools
           </p>
           <h2 className="mt-3 text-[36px] sm:text-[44px] lg:text-[56px] font-light tracking-[-0.04em] leading-[0.9] text-white">
@@ -1217,7 +1265,7 @@ function WhatCanIDo() {
             <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-14 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
           <p className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-white/60 uppercase flex items-center justify-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#FF4D2E]" /> Services
+            <span className="w-2 h-2 rounded-full bg-[#7AB8E8]" /> Services
           </p>
           <h2 className="mt-3 text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[88px] font-black tracking-[-0.06em] leading-[0.9] text-white">
             What can I do?
@@ -1509,7 +1557,7 @@ function WorkProcess() {
       <div className="mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-14 xl:pt-6 pb-6 lg:pb-8 xl:pb-4 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
           <p className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
-            <span className="text-[#FF4D2E]" aria-hidden>✦</span> Work Process
+            <span className="text-[#7AB8E8]" aria-hidden>✦</span> Work Process
           </p>
           <h2 className="mt-3 text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[72px] font-black tracking-[-0.06em] leading-[0.9] text-white">
             FROM VISION TO REALITY
@@ -1585,7 +1633,7 @@ function StepCard({ s, i, progress, scrub, reduced }) {
 function CardBody({ s }) {
   return (
     <>
-              <span aria-hidden className="absolute -top-[1px] left-8 h-[6px] w-[60px] rounded-b-[3px] bg-[#FF4D2E]" />
+              <span aria-hidden className="absolute -top-[1px] left-8 h-[6px] w-[60px] rounded-b-[3px] bg-[#7AB8E8]" />
               <div className="flex items-baseline gap-3">
                 <span className="text-[14px] font-mono tracking-[0.08em] text-[#F0F3FF]/60 shrink-0">{"//"}{s.num}</span>
                 <h3 className="text-[28px] lg:text-[32px] font-semibold tracking-[-0.02em] text-white leading-[1.1]">{s.title}</h3>
@@ -1622,7 +1670,7 @@ function FrontendVisual() {
       <div className="mt-3 flex-1 grid grid-cols-[1.35fr_0.85fr] gap-2.5">
         <div className="rounded-[10px] bg-black/40 border border-white/10 p-2.5 flex flex-col gap-1.5 overflow-hidden">
           <div className="flex items-center gap-1 text-[9px] font-mono text-[#F0F3FF]/78">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D2E]" /> app/page.tsx
+            <span className="w-1.5 h-1.5 rounded-full bg-[#7AB8E8]" /> app/page.tsx
           </div>
           <div className="mt-1.5 flex gap-1">
             <span className="rounded bg-white/15 px-1.5 py-0.5 text-[8px] font-mono text-white/80">page.tsx</span>
@@ -1640,7 +1688,7 @@ function FrontendVisual() {
             <div className="h-[28px] rounded bg-white/10 border border-white/10" />
           </div>
           <div className="mt-auto flex gap-1 items-center">
-            <span className="h-1.5 w-8 rounded-full bg-[#FF4D2E]/60" />
+            <span className="h-1.5 w-8 rounded-full bg-[#7AB8E8]/60" />
             <span className="h-1.5 w-6 rounded-full bg-white/10" />
             <span className="ml-auto rounded-full bg-emerald-400/15 border border-emerald-400/20 px-1.5 py-0.5 text-[8px] font-mono text-emerald-300">Perf 98 • LCP 0.9s</span>
           </div>
@@ -1653,7 +1701,7 @@ function FrontendVisual() {
             <div className="mt-1 h-1 w-5/6 rounded bg-black/5" />
             <div className="mt-auto h-5 rounded-full bg-black text-white flex items-center justify-center text-[9px] font-bold">View →</div>
           </div>
-          <div className="h-[36px] rounded-[10px] bg-[#FF4D2E] p-2 flex items-center gap-2">
+          <div className="h-[36px] rounded-[10px] bg-[#7AB8E8] p-2 flex items-center gap-2">
             <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[8px] text-white">◩</span>
             <div className="flex-1">
               <div className="h-1 w-10 rounded bg-white/90" />
@@ -1723,7 +1771,7 @@ function MobileVisual() {
             </div>
             <div className="mt-1.5 text-[8px] font-mono text-emerald-300">Hot reload 240ms</div>
           </div>
-          <div className="w-[72px] rounded-full bg-[#FF4D2E] px-2 py-1.5 flex items-center justify-center gap-1">
+          <div className="w-[72px] rounded-full bg-[#7AB8E8] px-2 py-1.5 flex items-center justify-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             <span className="text-[8px] font-bold tracking-[0.08em] text-white">LIVE PREVIEW</span>
           </div>
@@ -1816,7 +1864,7 @@ function DatabaseVisual() {
           <div className="rounded-[10px] bg-white p-2">
             <div className="text-[8px] font-mono tracking-[0.08em] text-black/40 uppercase">Schema</div>
             <div className="mt-1 space-y-1">
-              <div className="flex items-center gap-1 text-[8px] font-mono"><span className="w-1 h-1 rounded-full bg-[#FF4D2E]" /> id <span className="ml-auto text-black/30">uuid PK</span></div>
+              <div className="flex items-center gap-1 text-[8px] font-mono"><span className="w-1 h-1 rounded-full bg-[#7AB8E8]" /> id <span className="ml-auto text-black/30">uuid PK</span></div>
               <div className="flex items-center gap-1 text-[8px] font-mono"><span className="w-1 h-1 rounded-full bg-[#336791]" /> name <span className="ml-auto text-black/30">text</span></div>
               <div className="flex items-center gap-1 text-[8px] font-mono"><span className="w-1 h-1 rounded-full bg-emerald-500" /> date <span className="ml-auto text-black/30">timestamptz</span></div>
             </div>

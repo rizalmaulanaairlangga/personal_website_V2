@@ -4,6 +4,7 @@ import SiteFooter from "@/components/SiteFooter";
 import SiteNav from "@/components/SiteNav";
 import BackLink from "./BackLink";
 import MoreProjects from "./MoreProjects";
+import ScreenshotGallery from "./ScreenshotGallery";
 import ScrollToTop from "./ScrollToTop";
 
 export const revalidate = 60;
@@ -30,12 +31,9 @@ export default async function WorkDetail({ params }) {
   const solution = project.solution || {};
   const credits = project.credits || [];
   const frameworks = project.frameworks || [];
-  const gallery = project.gallery || [];
   const teamQuote = project.team_quote || null;
   const year = project.date ? new Date(project.date).getFullYear() : "-";
   const hasCredits = credits.length > 0;
-  const hasGallery = gallery.length > 0;
-
   const { data: more } = await supa
     .from("proyek_web")
     .select("name,slug,foto_public_url,project_type")
@@ -55,8 +53,8 @@ export default async function WorkDetail({ params }) {
           <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-8 lg:gap-12 items-start">
             
             <div>
-              <BackLink goBack href="/" className="inline-flex items-center gap-1.5 text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/60 hover:text-[#F0F3FF] transition-colors min-h-[44px]">
-                <span aria-hidden>←</span> Back
+              <BackLink goBack href="/" className="back-link inline-flex items-center gap-1.5 text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/60 hover:text-[#F0F3FF] transition-colors min-h-[44px]">
+                <span aria-hidden className="back-link-arrow">←</span> Back
               </BackLink>
               <h1 className="mt-4 text-[48px] sm:text-[64px] lg:text-[88px] xl:text-[96px] font-black tracking-[-0.05em] leading-[0.85] text-[#F0F3FF]">
                 {project.name}
@@ -75,18 +73,28 @@ export default async function WorkDetail({ params }) {
                     href={project.link_web}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-[52px]"
+                    className="detail-cta btn-motion inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-[52px]"
                   >
-                    Visit Live Site
-                    <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px] leading-none">→</span>
+                    <span className="cta-label">Visit Live Site</span>
+                    <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px] leading-none">
+                      <span aria-hidden="true" className="cta-arrow-viewport">
+                        <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
+                        <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
+                      </span>
+                    </span>
                   </a>
                 ) : (
                   <a
                     href="/#contact"
-                    className="inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors min-h-[52px]"
+                    className="detail-cta btn-motion inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors min-h-[52px]"
                   >
-                    Contact me
-                    <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px]">→</span>
+                    <span className="cta-label">Contact me</span>
+                    <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px]">
+                      <span aria-hidden="true" className="cta-arrow-viewport">
+                        <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
+                        <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
+                      </span>
+                    </span>
                   </a>
                 )}
               </div>
@@ -203,10 +211,15 @@ export default async function WorkDetail({ params }) {
                     href={project.link_web}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-6 inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-[52px]"
+                    className="detail-cta btn-motion mt-6 inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-[52px]"
                   >
-                    Visit Live Site
-                    <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px] leading-none">→</span>
+                    <span className="cta-label">Visit Live Site</span>
+                    <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px] leading-none">
+                      <span aria-hidden="true" className="cta-arrow-viewport">
+                        <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
+                        <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
+                      </span>
+                    </span>
                   </a>
                 ) : null}
               </article>
@@ -214,20 +227,7 @@ export default async function WorkDetail({ params }) {
           </div>
         </div>
       </section>
-      {hasGallery && (
-        <section className="bg-[#0A0404] border-b border-white/[0.06] py-8 lg:py-10">
-          <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {gallery.slice(0, 4).map((src, i) => (
-                <div key={i} className="overflow-hidden rounded-[14px] bg-[#111] border border-white/[0.06] aspect-[4/3] relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      <ScreenshotGallery projectId={project.id} projectName={project.name} />
       <MoreProjects projects={more} />
       {/* LOCKED PACKAGE: Contact + SiteFooter — do not separate or edit independently without approval */}
       <section id="contact" className="relative bg-[#0a0404] border-y border-white/[0.06]">

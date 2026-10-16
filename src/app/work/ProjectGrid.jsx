@@ -16,6 +16,16 @@ export default function ProjectGrid({ projects }) {
     let active = false;
     let hasPointer = false;
     let lastX = 0, lastY = 0;
+    const syncCircle = () => {
+      circle.style.transform = `translate3d(${cx - 112}px, ${cy - 112}px, 0)`;
+    };
+    const cardUnderPointer = () => {
+      if (!hasPointer) return null;
+      let el = null;
+      try { el = document.elementFromPoint(lastX, lastY); } catch { el = null; }
+      const card = el?.closest?.("[data-project-link]");
+      return card && container.contains(card) ? card : null;
+    };
     const tick = () => {
       raf = 0;
       cx += (mx - cx) * 0.18;
@@ -25,28 +35,25 @@ export default function ProjectGrid({ projects }) {
         raf = requestAnimationFrame(tick);
       }
     };
-    const updateHoveredCard = (inside) => {
+    const updateHoveredCard = (card) => {
       const cards = container.querySelectorAll("[data-project-link]");
-      if (!inside || !hasPointer) {
-        cards.forEach((c) => c.removeAttribute("data-hovered"));
-        return;
-      }
-      const el = document.elementFromPoint(lastX, lastY);
-      const card = el?.closest?.("[data-project-link]");
       cards.forEach((c) => {
         if (c === card) c.setAttribute("data-hovered", "true");
         else c.removeAttribute("data-hovered");
       });
     };
-    const checkScroll = () => {
-      if (!hasPointer) return;
-      const rect = container.getBoundingClientRect();
-      const inside = lastX >= rect.left && lastX <= rect.right && lastY >= rect.top && lastY <= rect.bottom;
+    const setActive = (inside) => {
       if (inside !== active) {
         active = inside;
         setCursorActive(inside);
       }
-      updateHoveredCard(inside);
+    };
+    const checkScroll = () => {
+      if (!hasPointer) return;
+      const card = cardUnderPointer();
+      setActive(!!card);
+      updateHoveredCard(card);
+      if (card && !raf) raf = requestAnimationFrame(tick);
     };
     let scrollRaf = 0;
     const onScroll = () => {
@@ -57,21 +64,44 @@ export default function ProjectGrid({ projects }) {
       });
     };
     const onMove = (e) => {
+      const first = !hasPointer;
       mx = e.clientX;
       my = e.clientY;
       lastX = e.clientX;
       lastY = e.clientY;
       hasPointer = true;
-      const rect = container.getBoundingClientRect();
-      const inside = lastX >= rect.left && lastX <= rect.right && lastY >= rect.top && lastY <= rect.bottom;
-      if (inside !== active) {
-        active = inside;
-        setCursorActive(inside);
+      if (first) {
+        cx = mx;
+        cy = my;
+        syncCircle();
       }
-      updateHoveredCard(inside);
+      const card = cardUnderPointer();
+      setActive(!!card);
+      updateHoveredCard(card);
       if (!raf) raf = requestAnimationFrame(tick);
     };
-    const onEnter = () => { active = true; setCursorActive(true); };
+    const onEnter = (e) => {
+      if (e && typeof e.clientX === "number" && typeof e.clientY === "number") {
+        const first = !hasPointer;
+        mx = e.clientX;
+        my = e.clientY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        hasPointer = true;
+        if (first) {
+          cx = mx;
+          cy = my;
+          syncCircle();
+        }
+        const card = cardUnderPointer();
+        setActive(!!card);
+        updateHoveredCard(card);
+        if (card && !raf) raf = requestAnimationFrame(tick);
+        return;
+      }
+      if (!hasPointer) return;
+      checkScroll();
+    };
     const onLeave = () => {
       active = false;
       setCursorActive(false);
@@ -80,14 +110,20 @@ export default function ProjectGrid({ projects }) {
     container.addEventListener("mousemove", onMove, { passive: true });
     container.addEventListener("mouseenter", onEnter);
     container.addEventListener("mouseleave", onLeave);
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
     window.addEventListener("resize", onScroll, { passive: true });
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(onScroll);
+      ro.observe(container);
+    }
     return () => {
       container.removeEventListener("mousemove", onMove);
       container.removeEventListener("mouseenter", onEnter);
       container.removeEventListener("mouseleave", onLeave);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onScroll, { capture: true });
       window.removeEventListener("resize", onScroll);
+      if (ro) ro.disconnect();
       if (raf) cancelAnimationFrame(raf);
       if (scrollRaf) cancelAnimationFrame(scrollRaf);
     };
@@ -107,7 +143,7 @@ export default function ProjectGrid({ projects }) {
               key={p.slug}
               href={`/work/${p.slug}`}
               data-project-link={`/work/${p.slug}`}
-              className="group block cursor-none rounded-[14px] outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D2E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0404]"
+              className="group block cursor-none rounded-[14px] outline-none focus-visible:ring-2 focus-visible:ring-[#7AB8E8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0404]"
             >
               <div className="relative overflow-hidden rounded-[14px] bg-[#111] border border-white/[0.10] h-[380px] lg:h-[560px]">
                 {p.foto_public_url ? (
@@ -121,7 +157,7 @@ export default function ProjectGrid({ projects }) {
                   />
                 ) : null}
                 <div className="project-overlay absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
-                <div className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#FF4D2E] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 pointer-events-none">
+                <div className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#7AB8E8] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 pointer-events-none">
                   <span className="text-[20px] font-black leading-none" aria-hidden>→</span>
                   <span className="text-[13px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
                 </div>
@@ -138,7 +174,7 @@ export default function ProjectGrid({ projects }) {
         <div
           ref={cursorRef}
           aria-hidden
-          className={`hidden lg:flex fixed left-0 top-0 z-[60] w-[224px] h-[224px] rounded-full bg-[#FF4D2E] flex-col items-center justify-center gap-1 text-white shadow-[0_18px_50px_rgba(0,0,0,0.45)] will-change-transform pointer-events-none ${cursorActive ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
+          className={`hidden lg:flex fixed left-0 top-0 z-[60] w-[224px] h-[224px] rounded-full bg-[#7AB8E8] flex-col items-center justify-center gap-1 text-white shadow-[0_18px_50px_rgba(0,0,0,0.45)] will-change-transform pointer-events-none ${cursorActive ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
           style={{ transform: "translate3d(-112px,-112px,0)", transition: "opacity 200ms, transform 0ms" }}
         >
           <span className="text-[38px] font-black leading-none">→</span>

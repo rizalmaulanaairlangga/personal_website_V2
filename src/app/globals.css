@@ -71,3 +71,223 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 /* isolation:isolate avoids trapping fixed descendants */
 .lenis.lenis-smooth main { isolation: isolate; }
+
+/* Hero CTAs: shared pill language, primary is the single blue accent.
+   Purpose: one coordinated hover (text wipe + arrow swap) shared by both
+   buttons; blue stays the single deliberate accent. */
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 300ms ease-out,
+    border-color 300ms ease-out,
+    box-shadow 300ms ease-out;
+}
+.hero-cta-primary {
+  background-color: #7AB8E8;
+  color: #FFFFFF;
+  border: 1px solid transparent;
+}
+.hero-cta-primary:hover,
+.hero-cta-primary:focus-visible {
+  background-color: #7AB8E8;
+}
+.hero-cta-primary:active {
+  box-shadow: 0 4px 14px rgba(122, 184, 232, 0.25);
+}
+.hero-cta-secondary {
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+.hero-cta-secondary:hover,
+.hero-cta-secondary:focus-visible {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+.hero-cta-secondary:active {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+.hero-cta:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 3px;
+}
+
+/* Text color wipe: one visible text, gradient boundary sweeps left to right.
+   Synced with arrow: identical duration + easing, enter 650ms, exit 1000ms.
+   Reusable default button motion: set --wipe-from/--wipe-to on the button. */
+.cta-label {
+  display: inline-block;
+  line-height: 1.2;
+  padding-block: 0.12em;
+  margin-block: -0.12em;
+  background-image: linear-gradient(to right, var(--wipe-to, #160B08) 50%, var(--wipe-from, #FFFFFF) 50%);
+  background-size: 220% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  transition: background-position 1000ms cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: background-position;
+}
+.hero-cta-primary {
+  --wipe-from: #FFFFFF;
+  --wipe-to: #160B08;
+}
+.hero-cta-secondary {
+  --wipe-from: rgba(255, 255, 255, 0.92);
+  --wipe-to: #7AB8E8;
+}
+.more-projects-link {
+  --wipe-from: #FFFFFF;
+  --wipe-to: #7AB8E8;
+}
+.detail-cta {
+  --wipe-from: #0A0404;
+  --wipe-to: #7AB8E8;
+}
+.hero-cta:hover .cta-label,
+.hero-cta:focus-visible .cta-label,
+.btn-motion:hover .cta-label,
+.btn-motion:focus-visible .cta-label {
+  background-position: 0% 0;
+  transition: background-position 650ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Dual-arrow replacement: fixed viewport, both icons slide right together.
+   Synced with text wipe: identical duration + easing, enter 650ms, exit 1000ms. */
+.cta-arrow-viewport {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  overflow: hidden;
+  position: relative;
+  flex: none;
+}
+.cta-arrow-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 17px;
+  line-height: 1;
+  transition: transform 1000ms cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+}
+.cta-arrow-icon-front { transform: translate(-50%, -50%) translateX(0); }
+.cta-arrow-icon-back { transform: translate(-50%, -50%) translateX(-28px); }
+.cta-arrow-icon-front,
+.cta-arrow-icon-back { color: inherit; }
+.hero-cta-primary .cta-arrow-icon-front { color: #FFFFFF; }
+.hero-cta-primary .cta-arrow-icon-back { color: #160B08; }
+.hero-cta-secondary .cta-arrow-icon-front { color: #FFFFFF; }
+.hero-cta-secondary .cta-arrow-icon-back { color: #7AB8E8; }
+.more-projects-link .cta-arrow-icon-front,
+.more-projects-link .cta-arrow-icon-back,
+.detail-cta .cta-arrow-icon-front,
+.detail-cta .cta-arrow-icon-back { color: #FFFFFF; }
+.hero-cta:hover .cta-arrow-icon-front,
+.hero-cta:focus-visible .cta-arrow-icon-front,
+.btn-motion:hover .cta-arrow-icon-front,
+.btn-motion:focus-visible .cta-arrow-icon-front {
+  transform: translate(-50%, -50%) translateX(28px);
+  transition: transform 650ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.hero-cta:hover .cta-arrow-icon-back,
+.hero-cta:focus-visible .cta-arrow-icon-back,
+.btn-motion:hover .cta-arrow-icon-back,
+.btn-motion:focus-visible .cta-arrow-icon-back {
+  transform: translate(-50%, -50%) translateX(0);
+  transition: transform 650ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Logo hover: rotate +15deg then settle at -30deg while hovered, back to 0deg
+   on leave. White wipe rises bottom to top, independent of the rotation. */
+@keyframes logo-settle {
+  0% { transform: rotate(0deg); }
+  35% { transform: rotate(15deg); }
+  100% { transform: rotate(-30deg); }
+}
+.site-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: 50% 50%;
+  transform: rotate(0deg);
+  transition: transform 500ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.site-logo-wipe {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(101%);
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+a:hover .site-logo,
+a:focus-visible .site-logo {
+  animation: logo-settle 600ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+a:hover .site-logo-wipe,
+a:focus-visible .site-logo-wipe {
+  transform: translateY(0);
+}
+/* Back link: underline wipes right to left, arrow nudges left, text stays put. */
+.back-link {
+  position: relative;
+}
+.back-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 8px;
+  height: 1px;
+  width: 100%;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 350ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.back-link:hover::after,
+.back-link:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+.back-link-arrow {
+  display: inline-block;
+  transition: transform 350ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.back-link:hover .back-link-arrow,
+.back-link:focus-visible .back-link-arrow {
+  transform: translateX(-3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .back-link::after,
+  .back-link-arrow,
+  .cta-label,
+  .cta-arrow-icon,
+  .site-logo,
+  .site-logo-wipe {
+    transition: none;
+  }
+  .back-link:hover .back-link-arrow,
+  .back-link:focus-visible .back-link-arrow {
+    transform: none;
+  }
+  a:hover .site-logo,
+  a:focus-visible .site-logo {
+    animation: none;
+  }
+}
