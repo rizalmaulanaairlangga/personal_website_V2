@@ -5,7 +5,6 @@ import SiteNav from "@/components/SiteNav";
 import BackLink from "./BackLink";
 import MoreProjects from "./MoreProjects";
 import ScreenshotGallery from "./ScreenshotGallery";
-import ScrollToTop from "./ScrollToTop";
 
 export const revalidate = 60;
 
@@ -45,7 +44,6 @@ export default async function WorkDetail({ params }) {
 
   return (
     <main className="relative min-h-screen bg-[#0A0404] text-[#F0F3FF] overflow-x-clip [overscroll-behavior:none]">
-      <ScrollToTop />
       <SiteNav />
       <div className="relative z-10 bg-[#0A0404] shadow-[0_32px_100px_rgba(0,0,0,0.65)]">
       <section className="pt-[76px] md:pt-[92px] bg-[#0A0404] border-b border-white/[0.08]">

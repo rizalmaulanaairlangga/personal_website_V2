@@ -1,4 +1,5 @@
 import { Space_Grotesk, JetBrains_Mono, Instrument_Serif, Caveat } from "next/font/google";
+import RouteScrollReset from "@/components/RouteScrollReset";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
@@ -14,7 +15,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id" className={`${spaceGrotesk.variable} ${mono.variable} ${instrumentSerif.variable} ${caveat.variable}`}>
-      <body className={`${spaceGrotesk.className} bg-[#0a0404] text-[#F2F2F3] antialiased`}>{children}</body>
+      <body className={`${spaceGrotesk.className} bg-[#0a0404] text-[#F2F2F3] antialiased`}>
+        <RouteScrollReset />
+        {children}
+      </body>
     </html>
   );
 }

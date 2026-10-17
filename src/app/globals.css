@@ -124,9 +124,7 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
   outline-offset: 3px;
 }
 
-/* Text color wipe: one visible text, gradient boundary sweeps left to right.
-   Synced with arrow: identical duration + easing, enter 650ms, exit 1000ms.
-   Reusable default button motion: set --wipe-from/--wipe-to on the button. */
+/* Text wipe and arrow swap share one timing; set --wipe-from/--wipe-to per button. */
 .cta-label {
   display: inline-block;
   line-height: 1.2;
@@ -166,8 +164,7 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
   transition: background-position 650ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Dual-arrow replacement: fixed viewport, both icons slide right together.
-   Synced with text wipe: identical duration + easing, enter 650ms, exit 1000ms. */
+/* Both arrows slide right inside a fixed viewport, on the wipe's timing. */
 .cta-arrow-viewport {
   display: inline-block;
   width: 18px;
