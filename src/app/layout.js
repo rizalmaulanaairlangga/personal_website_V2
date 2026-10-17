@@ -7,7 +7,7 @@ const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: ["400"], 
 const caveat = Caveat({ subsets: ["latin"], weight: ["400", "500", "600", "700"], display: "swap", variable: "--font-hand" });
 
 export const metadata = {
-  title: "Rizal Maulana — Portfolio",
+  title: "Personal Portofolio Website | Rizal Maulana Airlangga",
   description: "Crafting Web Experiences & Logic Solutions — Informatics student, web & logic projects, achievements.",
 };
 
