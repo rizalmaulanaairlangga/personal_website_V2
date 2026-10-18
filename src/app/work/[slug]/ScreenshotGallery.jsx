@@ -1,3 +1,4 @@
+import "./gallery.css";
 import { createClient } from "@supabase/supabase-js";
 
 function client() {
@@ -36,40 +37,85 @@ export default async function ScreenshotGallery({ projectId, projectName }) {
   const d = [desktops[0] || null, desktops[1] || null, desktops[2] || null];
   const alt = (r, fallback) => r.alt_text || fallback;
   return (
-    <section aria-label="Project screenshots" className="bg-[#0A0404] border-b border-white/[0.06] py-8 lg:py-10">
-      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
-          {mobile ? (
-            <div className="overflow-hidden rounded-[14px] bg-black border border-white/[0.10] relative md:row-span-2 min-h-[320px] md:min-h-[420px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+    <section
+      aria-label="Project screenshots"
+      data-gallery-section
+      className="gallery-section"
+    >
+      <div className="gallery-container">
+        {(mobile || d[0]) ? (
+          <div data-device-row className="device-row">
+            {mobile ? (
+              <div data-device="phone" className="device device--phone">
+                <div className="device-notch" />
+                <div className="device-screen">
+                  <img
+                    src={shotUrl(mobile.image_path)}
+                    alt={alt(mobile, projectName + " mobile screenshot")}
+                    loading="lazy"
+                    decoding="async"
+                    className="device-img"
+                  />
+                </div>
+              </div>
+            ) : null}
+            {d[0] ? (
+              <div data-device="tablet" className="device device--tablet">
+                <div className="device-notch" />
+                <div className="device-screen">
+                  <img
+                    src={shotUrl(d[0].image_path)}
+                    alt={alt(d[0], projectName + " tablet screenshot")}
+                    loading="lazy"
+                    decoding="async"
+                    className="device-img"
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {d[2] ? (
+          <div data-desktop-showcase className="desktop-showcase">
+            <div className="desktop-frame">
               <img
-                src={shotUrl(mobile.image_path)}
-                alt={alt(mobile, projectName + " mobile screenshot")}
+                src={shotUrl(d[2].image_path)}
+                alt={alt(d[2], projectName + " desktop screenshot 3")}
                 loading="lazy"
                 decoding="async"
-                className="absolute inset-0 w-full h-full object-contain"
+                className="desktop-img"
               />
             </div>
-          ) : null}
-          {d.map((shot, i) =>
-            shot ? (
-              <div
-                key={shot.image_path}
-                className={`overflow-hidden rounded-[14px] bg-black border border-white/[0.10] aspect-[16/10] relative ${!mobile && i === 2 ? "md:col-span-2" : ""} ${mobile && i === 2 ? "md:col-start-2" : ""}`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={shotUrl(shot.image_path)}
-                  alt={alt(shot, projectName + " desktop screenshot " + (i + 1))}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 w-full h-full object-contain"
-                />
-              </div>
-            ) : null
-          )}
-        </div>
+          </div>
+        ) : null}
       </div>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function(){
+              const section=document.querySelector('[data-gallery-section]');
+              if(!section) return;
+              const row=document.querySelector('[data-device-row]');
+              const desktop=document.querySelector('[data-desktop-showcase]');
+              const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              if(reduce){
+                if(row) row.classList.add('is-visible');
+                if(desktop) desktop.classList.add('is-visible');
+                return;
+              }
+              const io=new IntersectionObserver((entries)=>{
+                entries.forEach(e=>{
+                  if(e.isIntersecting){
+                    if(row) row.classList.add('is-visible');
+                    if(desktop) desktop.classList.add('is-visible');
+                    io.disconnect();
+                  }
+                });
+              },{threshold:0.15, rootMargin:'0px 0px -10% 0px'});
+              io.observe(section);
+            })();`,
+        }}
+      />
     </section>
   );
 }
