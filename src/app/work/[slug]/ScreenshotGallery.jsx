@@ -1,5 +1,6 @@
 import "./gallery.css";
 import { createClient } from "@supabase/supabase-js";
+import GalleryReveal from "./GalleryReveal";
 
 function client() {
   return createClient(
@@ -17,8 +18,7 @@ export function shotUrl(path) {
 }
 
 export default async function ScreenshotGallery({ projectId, projectName }) {
-  let mobile = null;
-  let desktops = [];
+  let rows = [];
   try {
     const supa = client();
     const { data, error } = await supa
@@ -27,23 +27,29 @@ export default async function ScreenshotGallery({ projectId, projectName }) {
       .eq("project_id", projectId)
       .order("sort_order");
     if (error) throw error;
-    mobile = (data || []).find((r) => r.view_type === "mobile") || null;
-    desktops = (data || []).filter((r) => r.view_type === "desktop").slice(0, 3);
+    rows = data || [];
   } catch {
-    return null;
+    rows = [];
   }
-  if (!mobile && !desktops.length) return null;
 
-  const d = [desktops[0] || null, desktops[1] || null, desktops[2] || null];
+  const mobile = rows.find((r) => r.view_type === "mobile") || null;
+  const tablet = rows.find((r) => r.view_type === "tablet") || null;
+  const desktopRows = rows.filter((r) => r.view_type === "desktop");
+  const desktopBelow = desktopRows[desktopRows.length - 1] || null;
+  if (!mobile && !tablet && !desktopBelow) return null;
+
   const alt = (r, fallback) => r.alt_text || fallback;
+  const hasDeviceRow = Boolean(mobile || tablet);
+
   return (
     <section
       aria-label="Project screenshots"
-      data-gallery-section
+      data-gallery-section={projectId}
       className="gallery-section"
     >
+      <GalleryReveal projectId={projectId} />
       <div className="gallery-container">
-        {(mobile || d[0]) ? (
+        {hasDeviceRow ? (
           <div data-device-row className="device-row">
             {mobile ? (
               <div data-device="phone" className="device device--phone">
@@ -59,13 +65,13 @@ export default async function ScreenshotGallery({ projectId, projectName }) {
                 </div>
               </div>
             ) : null}
-            {d[0] ? (
+            {tablet ? (
               <div data-device="tablet" className="device device--tablet">
                 <div className="device-notch" />
                 <div className="device-screen">
                   <img
-                    src={shotUrl(d[0].image_path)}
-                    alt={alt(d[0], projectName + " tablet screenshot")}
+                    src={shotUrl(tablet.image_path)}
+                    alt={alt(tablet, projectName + " tablet screenshot")}
                     loading="lazy"
                     decoding="async"
                     className="device-img"
@@ -75,12 +81,12 @@ export default async function ScreenshotGallery({ projectId, projectName }) {
             ) : null}
           </div>
         ) : null}
-        {d[2] ? (
+        {desktopBelow ? (
           <div data-desktop-showcase className="desktop-showcase">
             <div className="desktop-frame">
               <img
-                src={shotUrl(d[2].image_path)}
-                alt={alt(d[2], projectName + " desktop screenshot 3")}
+                src={shotUrl(desktopBelow.image_path)}
+                alt={alt(desktopBelow, projectName + " desktop screenshot")}
                 loading="lazy"
                 decoding="async"
                 className="desktop-img"
@@ -89,33 +95,6 @@ export default async function ScreenshotGallery({ projectId, projectName }) {
           </div>
         ) : null}
       </div>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function(){
-              const section=document.querySelector('[data-gallery-section]');
-              if(!section) return;
-              const row=document.querySelector('[data-device-row]');
-              const desktop=document.querySelector('[data-desktop-showcase]');
-              const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-              if(reduce){
-                if(row) row.classList.add('is-visible');
-                if(desktop) desktop.classList.add('is-visible');
-                return;
-              }
-              const io=new IntersectionObserver((entries)=>{
-                entries.forEach(e=>{
-                  if(e.isIntersecting){
-                    if(row) row.classList.add('is-visible');
-                    if(desktop) desktop.classList.add('is-visible');
-                    io.disconnect();
-                  }
-                });
-              },{threshold:0.15, rootMargin:'0px 0px -10% 0px'});
-              io.observe(section);
-            })();`,
-        }}
-      />
     </section>
   );
 }

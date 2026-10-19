@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
 
 const root = 'C:/Rizal_IT_B/Portofolio/Coba UI/personal website';
 import dotenv from 'dotenv';
@@ -58,11 +57,7 @@ try {
 }
 
 // Prepare insert payload
-const notionId = crypto.randomUUID();
-console.log('\nGenerated notion_id:', notionId);
-
 const payload = {
-  notion_id: notionId,
   name: projectName,
   description: 'Sistem Informasi Geografis (GIS) interaktif untuk menganalisis dan memvisualisasikan distribusi, kepadatan, dan rasio fasilitas kesehatan (Faskes) di seluruh kecamatan Kota Surabaya. Menampilkan peta interaktif berbasis Leaflet & React Leaflet dengan GeoJSON, tooltip/popup dinamis, skala klasifikasi warna, serta dashboard analitik premium dengan SVG Donut Chart proporsional (fixed gap), Bar & Line Chart animasi, tabel sorting multi-dimensi, dan desain Glassmorphism responsif yang optimal. Data disajikan statis dari JSON/GeoJSON tanpa backend terpisah.',
   date: '2026-09-13',
@@ -72,7 +67,6 @@ const payload = {
   link_web: 'https://health-facility-gis-surabaya.vercel.app/',
   repo_link: 'https://github.com/rizalmaulanaairlangga/health-facility-gis-surabaya',
   source: source,
-  notion_url: null,
   created_time: new Date().toISOString(),
   updated_time: new Date().toISOString(),
   frameworks: ['React', 'TypeScript', 'Vite', 'Tailwind CSS', 'Leaflet', 'React Leaflet', 'React Router', 'Axios']

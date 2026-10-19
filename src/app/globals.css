@@ -8,6 +8,7 @@
   --line: rgba(255, 255, 255, 0.07);
   --line-strong: rgba(255, 255, 255, 0.09);
   --text: #F2F2F3;
+  --arrow-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M4 9h10M10 5l4 4-4 4' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 * { scrollbar-width: thin; scrollbar-color: #2A2A30 transparent; }
@@ -107,17 +108,17 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
   box-shadow: 0 4px 14px rgba(122, 184, 232, 0.25);
 }
 .hero-cta-secondary {
-  background-color: transparent;
-  color: rgba(255, 255, 255, 0.92);
+  background-color: #FFFFFF;
+  color: #0A0404;
   border: 1px solid rgba(255, 255, 255, 0.55);
 }
 .hero-cta-secondary:hover,
 .hero-cta-secondary:focus-visible {
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: #FFFFFF;
   border-color: rgba(255, 255, 255, 0.9);
 }
 .hero-cta-secondary:active {
-  background-color: rgba(255, 255, 255, 0.10);
+  background-color: #FFFFFF;
 }
 .hero-cta:focus-visible {
   outline: 2px solid #FFFFFF;
@@ -145,7 +146,7 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
   --wipe-to: #160B08;
 }
 .hero-cta-secondary {
-  --wipe-from: rgba(255, 255, 255, 0.92);
+  --wipe-from: #0A0404;
   --wipe-to: #7AB8E8;
 }
 .more-projects-link {
@@ -164,6 +165,25 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
   transition: background-position 650ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* Arrow mark for surfaces without the CTA swap (project cursor, mobile badge).
+   Size comes from the utility classes; font-size: 0 keeps the placeholder
+   glyph out of the box so only the mask paints. */
+.arrow-mark {
+  display: inline-block;
+  flex: none;
+  font-size: 0;
+  line-height: 0;
+  background-color: currentColor;
+  -webkit-mask-image: var(--arrow-mark);
+  mask-image: var(--arrow-mark);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
 /* Both arrows slide right inside a fixed viewport, on the wipe's timing. */
 .cta-arrow-viewport {
   display: inline-block;
@@ -177,8 +197,19 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
   position: absolute;
   top: 50%;
   left: 50%;
-  font-size: 17px;
+  width: 18px;
+  height: 18px;
+  font-size: 0;
   line-height: 1;
+  background-color: currentColor;
+  -webkit-mask-image: var(--arrow-mark);
+  mask-image: var(--arrow-mark);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
   transition: transform 1000ms cubic-bezier(0.65, 0, 0.35, 1);
   will-change: transform;
 }
@@ -188,7 +219,7 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
 .cta-arrow-icon-back { color: inherit; }
 .hero-cta-primary .cta-arrow-icon-front { color: #FFFFFF; }
 .hero-cta-primary .cta-arrow-icon-back { color: #160B08; }
-.hero-cta-secondary .cta-arrow-icon-front { color: #FFFFFF; }
+.hero-cta-secondary .cta-arrow-icon-front { color: #0A0404; }
 .hero-cta-secondary .cta-arrow-icon-back { color: #7AB8E8; }
 .more-projects-link .cta-arrow-icon-front,
 .more-projects-link .cta-arrow-icon-back,
@@ -241,6 +272,115 @@ a:hover .site-logo-wipe,
 a:focus-visible .site-logo-wipe {
   transform: translateY(0);
 }
+/* Footer CTA: ink pill on the blue footer, label wipes to the accent on hover. */
+.footer-cta {
+  --wipe-from: #FFFFFF;
+  --wipe-to: #7AB8E8;
+}
+.footer-cta .cta-arrow-icon-front,
+.footer-cta .cta-arrow-icon-back { color: #FFFFFF; }
+.footer-cta:focus-visible {
+  outline: 2px solid #0A0404;
+  outline-offset: 3px;
+}
+
+/* Separator above the footer name: hairline across the width, thicker and
+   stronger through the middle, dissolving at both ends. */
+.footer-rule {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(10, 4, 4, 0) 0%, rgba(10, 4, 4, 0.32) 50%, rgba(10, 4, 4, 0) 100%);
+}
+.footer-rule::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(42%, 560px);
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(10, 4, 4, 0) 0%, rgba(10, 4, 4, 0.9) 50%, rgba(10, 4, 4, 0) 100%);
+}
+
+/* Oversized watermark name across the footer floor. The tight leading bleeds
+   above and below the line box, so the bottom padding keeps the descenders
+   inside the footer; only the sides may crop on narrow screens. */
+.footer-name {
+  margin-top: 0.04em;
+  padding-bottom: 0.25em;
+  font-size: min(10vw, 11vh);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.82;
+  text-align: center;
+  white-space: nowrap;
+  color: rgba(10, 4, 4, 0.14);
+}
+@media (min-width: 640px) {
+  .footer-name { font-size: min(8.5vw, 11vh); }
+}
+@media (min-width: 1024px) {
+  .footer-name { font-size: min(7vw, 12vh); }
+}
+
+/* Contact form: ink controls on the white surface, accent on focus. */
+.field-input,
+.field-select,
+.field-textarea {
+  display: block;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(10, 4, 4, 0.16);
+  background-color: #FAFAFA;
+  color: #0A0404;
+  font-size: 15px;
+  line-height: 1.4;
+  transition:
+    border-color 200ms ease-out,
+    box-shadow 200ms ease-out,
+    background-color 200ms ease-out;
+}
+.field-input,
+.field-select { min-height: 48px; padding: 12px 14px; }
+.field-textarea { min-height: 132px; padding: 12px 14px; resize: vertical; }
+.field-input::placeholder,
+.field-textarea::placeholder { color: rgba(10, 4, 4, 0.42); }
+.field-input:hover,
+.field-select:hover,
+.field-textarea:hover { border-color: rgba(10, 4, 4, 0.32); }
+.field-input:focus,
+.field-select:focus,
+.field-textarea:focus {
+  outline: none;
+  border-color: #7AB8E8;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(122, 184, 232, 0.35);
+}
+.field-input[aria-invalid="true"],
+.field-select[aria-invalid="true"],
+.field-textarea[aria-invalid="true"] {
+  border-color: #B4432F;
+  background-color: #FFF8F6;
+}
+.field-input[aria-invalid="true"]:focus,
+.field-select[aria-invalid="true"]:focus,
+.field-textarea[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px rgba(180, 67, 47, 0.25);
+}
+.submit-cta {
+  background-color: #7AB8E8;
+  color: #0A0404;
+  border: 1px solid transparent;
+}
+.submit-cta:hover,
+.submit-cta:focus-visible { background-color: #9ACBF0; }
+.submit-cta:active { background-color: #6FB2E2; }
+.submit-cta:focus-visible {
+  outline: 2px solid #0A0404;
+  outline-offset: 3px;
+}
+
 /* Back link: underline wipes right to left, arrow nudges left, text stays put. */
 .back-link {
   position: relative;

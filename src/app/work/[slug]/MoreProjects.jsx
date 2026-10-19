@@ -162,7 +162,7 @@ export default function MoreProjects({ projects }) {
                 <p className="mt-2 text-[14px] lg:text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/75">{p.project_type || ""}</p>
               </div>
               <div className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#7AB8E8] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                <span className="text-[20px] font-black">→</span>
+                <span className="arrow-mark w-[24px] h-[24px]">→</span>
                 <span className="text-[13px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
               </div>
             </Link>
@@ -174,7 +174,7 @@ export default function MoreProjects({ projects }) {
           className={`hidden lg:flex fixed left-0 top-0 z-[60] w-[224px] h-[224px] rounded-full bg-[#7AB8E8] flex-col items-center justify-center gap-1 text-white shadow-[0_18px_50px_rgba(0,0,0,0.45)] will-change-transform pointer-events-none ${cursorActive ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
           style={{ transform: "translate3d(-112px,-112px,0)", transition: "opacity 200ms, transform 0ms" }}
         >
-          <span className="text-[38px] font-black leading-none">→</span>
+          <span className="arrow-mark w-[44px] h-[44px]">→</span>
           <span className="text-[14px] font-black tracking-[0.14em] whitespace-nowrap scale-x-[1.08]">VIEW CASE STUDY</span>
         </div>
       </div>

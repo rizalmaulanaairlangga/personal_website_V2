@@ -57,7 +57,6 @@ if (existing && existing.length > 0) {
 } else {
   console.log('Inserting new proyek_web row for PENSQuiz...');
   const payload = {
-    notion_id: 'manual-pensquiz-' + Date.now(),
     name: 'PENSQuiz',
     description: 'Platform quiz interaktif untuk mahasiswa PENS dengan manajemen quiz, role dosen/mahasiswa, dashboard statistik, dan sistem tamu ephemeral (auto-hapus 12 jam). Dibangun dengan React + Vite + Tailwind di frontend, ASP.NET Core 8 + PostgreSQL (Supabase) di backend, serta landing page terpisah.',
     date: '2025-09-14',
@@ -67,7 +66,6 @@ if (existing && existing.length > 0) {
     link_web: 'https://frontend-pens-quiz.vercel.app',
     repo_link: 'https://github.com/rizalmaulanaairlangga/landing-page_PENSQuiz',
     source: 'personal',
-    notion_url: null,
     created_time: new Date().toISOString(),
     updated_time: new Date().toISOString(),
     frameworks: frameworks

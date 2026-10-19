@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 
 import SiteNav from "@/components/SiteNav";
+import SiteFooter from "@/components/SiteFooter";
 
 const roleItems = [
   { n: "01", label: "Frontend Development" },
@@ -161,7 +162,7 @@ export default function Home() {
       <SiteNav />
 
       {}
-      <div className="relative z-10 bg-[#0a0404] shadow-[0_32px_100px_rgba(0,0,0,0.65)]">
+      <div className="relative z-10 bg-[#0a0404] border-b border-white/[0.06] shadow-[0_32px_100px_rgba(0,0,0,0.65)]">
       {}
       <section className="relative h-[100svh] min-h-[600px] lg:min-h-[640px] bg-[#0e0505] overflow-hidden grid-lines flex flex-col">
         {}
@@ -298,95 +299,10 @@ export default function Home() {
 
       <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
 
-      {/* LOCKED PACKAGE: Contact + RevealFooter — do not separate or edit independently without approval */}
-      <section id="contact" className="relative bg-[#0a0404] border-y border-white/[0.06] scroll-mt-[88px] md:scroll-mt-[112px]">
-        <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] py-12 lg:py-16 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-          <div className="text-center">
-            <p className="text-[15px] lg:text-[16px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Email Address</p>
-            <a href="mailto:rizalmaulanaairlangga456@gmail.com" className="mt-3 inline-block text-[20px] lg:text-[24px] font-medium tracking-[-0.01em] text-white hover:text-white/80 transition-colors break-all">
-              rizalmaulanaairlangga456@gmail.com
-            </a>
-          </div>
-          <div className="text-center">
-            <p className="text-[15px] lg:text-[16px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Social Links</p>
-            <div className="mt-4 flex items-center justify-center gap-4">
-              <a href="https://www.instagram.com/a_rizal_i/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="opacity-90"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.6"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" strokeWidth="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
-              </a>
-              <a href="https://www.linkedin.com/in/rizal-maulana-airlangga-072b21346/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-              </a>
-              <a href="mailto:rizalmaulanaairlangga456@gmail.com" aria-label="Email" className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6.5C4 5.67 4.67 5 5.5 5H18.5C19.33 5 20 5.67 20 6.5V17.5C20 18.33 19.33 19 18.5 19H5.5C4.67 19 4 18.33 4 17.5V6.5Z" stroke="currentColor" strokeWidth="1.5"/><path d="M5 7L12 12.5L19 7" stroke="currentColor" strokeWidth="1.5"/></svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
       </div>
 
-      {}
-      <RevealFooter />
+      <SiteFooter spacerId="contact" />
     </main>
-  );
-}
-
-// LOCKED: RevealFooter is paired with Contact — keep together
-function RevealFooter() {
-  const innerRef = useRef(null);
-  useEffect(() => {
-    const inner = innerRef.current;
-    if (!inner) return;
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const docH = document.documentElement.scrollHeight;
-        const vh = window.innerHeight;
-        const fh =  Math.min(vh * 0.42, 560);
-        const start = docH - vh - fh;
-        const end = docH - vh;
-        const y = window.scrollY;
-        const progress = Math.min(1, Math.max(0, (y - start) / Math.max(1, end - start)));
-        const off = (1 - progress) * 92;
-        inner.style.transform = `translate3d(0,${off}px,0)`;
-        inner.style.willChange = progress < 0.99 ? "transform" : "auto";
-      });
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, []);
-  return (
-    <>
-      {}
-      <div className="h-[42vh] min-h-[280px] pointer-events-none" aria-hidden />
-      <footer className="fixed bottom-0 inset-x-0 z-0 overflow-hidden flex flex-col h-[42vh] min-h-[280px] border-t border-black/10" style={{ backgroundColor: "#C2BFB7", backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E")` }}>
-        <div ref={innerRef} className="flex-1 relative flex flex-col justify-end px-[1.6%] lg:px-[1%] pb-3 lg:pb-4 pt-6 lg:pt-8 will-change-transform" style={{ transform: "translate3d(0,92px,0)" }}>
-          <div className="flex items-end justify-between gap-4">
-            <h2 className="hero-display text-[30vw] sm:text-[26vw] lg:text-[18vw] xl:text-[16vw] leading-[0.82] tracking-[-0.06em] select-none pointer-events-none !text-[#0a0404]" style={{ WebkitTextFillColor: "#0a0404", color: "#0a0404" }}>
-              RIZAL<span className="align-super text-[0.28em] font-light ml-[0.03em]">®</span>
-            </h2>
-            <div className="hidden sm:flex flex-col items-end justify-end pb-[1.2vw] lg:pb-[1vw] text-right leading-[0.88] tracking-[-0.04em] font-black text-[#0a0404] shrink-0">
-              <span className="text-[10vw] sm:text-[8vw] lg:text-[5.5vw] xl:text-[5vw]">Learning.</span>
-              <span className="text-[10vw] sm:text-[8vw] lg:text-[5.5vw] xl:text-[5vw]">Building.</span>
-              <span className="text-[10vw] sm:text-[8vw] lg:text-[5.5vw] xl:text-[5vw] text-[#0a0404]/80">Growing.</span>
-            </div>
-          </div>
-          <div className="sm:hidden mt-4 text-left leading-[0.9] tracking-[-0.03em] font-black text-[#0a0404]">
-            <span className="block text-[18vw]">Learning.</span>
-            <span className="block text-[18vw]">Building.</span>
-            <span className="block text-[18vw] text-[#0a0404]/80">Growing.</span>
-          </div>
-        </div>
-      </footer>
-    </>
   );
 }
 
@@ -576,7 +492,7 @@ function LatestProject() {
           className={`hidden lg:flex fixed left-0 top-0 z-[60] w-[224px] h-[224px] rounded-full bg-[#7AB8E8] flex-col items-center justify-center gap-1 text-white shadow-[0_18px_50px_rgba(0,0,0,0.45)] will-change-transform pointer-events-none ${cursorActive ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
           style={{ transform: "translate3d(-112px,-112px,0)", transition: "opacity 200ms, transform 0ms" }}
         >
-          <span className="text-[38px] font-black leading-none">→</span>
+          <span className="arrow-mark w-[44px] h-[44px]">→</span>
           <span className="text-[13px] font-black tracking-[0.14em] whitespace-nowrap scale-x-[1.08]">VIEW CASE STUDY</span>
         </div>
       </div>
@@ -755,7 +671,7 @@ function ProjectCard({ project }) {
       <div
         className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#7AB8E8] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
       >
-        <span className="text-[20px] font-black">→</span>
+        <span className="arrow-mark w-[24px] h-[24px]">→</span>
         <span className="text-[13px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
       </div>
     </section>

@@ -45,7 +45,7 @@ export default async function WorkDetail({ params }) {
   return (
     <main className="relative min-h-screen bg-[#0A0404] text-[#F0F3FF] overflow-x-clip [overscroll-behavior:none]">
       <SiteNav />
-      <div className="relative z-10 bg-[#0A0404] shadow-[0_32px_100px_rgba(0,0,0,0.65)]">
+      <div className="relative z-10 bg-[#0A0404] border-b border-white/[0.06] shadow-[0_32px_100px_rgba(0,0,0,0.65)]">
       <section className="pt-[76px] md:pt-[92px] bg-[#0A0404] border-b border-white/[0.08]">
         <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-14 pb-8 lg:pb-10">
           <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-8 lg:gap-12 items-start">
@@ -204,54 +204,33 @@ export default async function WorkDetail({ params }) {
                   {solution.body || ""}
                 </p>
                 {solution.title && <p className="mt-4 text-[16px] lg:text-[17px] font-medium leading-[1.6] text-[#F0F3FF]/90">{solution.title}</p>}
-                {project.link_web ? (
-                  <a
-                    href={project.link_web}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="detail-cta btn-motion mt-6 inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-[52px]"
-                  >
-                    <span className="cta-label">Visit Live Site</span>
-                    <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px] leading-none">
-                      <span aria-hidden="true" className="cta-arrow-viewport">
-                        <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
-                        <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
-                      </span>
-                    </span>
-                  </a>
-                ) : null}
               </article>
             </div>
           </div>
         </div>
       </section>
       <ScreenshotGallery projectId={project.id} projectName={project.name} />
-      <MoreProjects projects={more} />
-      {/* LOCKED PACKAGE: Contact + SiteFooter — do not separate or edit independently without approval */}
-      <section id="contact" className="relative bg-[#0a0404] border-y border-white/[0.06]">
-        <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] py-12 lg:py-16 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-          <div className="text-center">
-            <p className="text-[15px] lg:text-[16px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Email Address</p>
-            <a href="mailto:rizalmaulanaairlangga456@gmail.com" className="mt-3 inline-block text-[20px] lg:text-[24px] font-medium tracking-[-0.01em] text-white hover:text-white/80 transition-colors break-all">
-              rizalmaulanaairlangga456@gmail.com
+      {project.link_web ? (
+        <section className="bg-[#0A0404] pb-10 lg:pb-14">
+          <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] flex justify-center">
+            <a
+              href={project.link_web}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="detail-cta btn-motion inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-[52px]"
+            >
+              <span className="cta-label">Visit Live Site</span>
+              <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px] leading-none">
+                <span aria-hidden="true" className="cta-arrow-viewport">
+                  <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
+                  <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
+                </span>
+              </span>
             </a>
           </div>
-          <div className="text-center">
-            <p className="text-[15px] lg:text-[16px] font-medium tracking-[0.16em] uppercase text-[#F0F3FF]/82">Social Links</p>
-            <div className="mt-4 flex items-center justify-center gap-4">
-              <a href="https://www.instagram.com/a_rizal_i/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="opacity-90"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.6"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" strokeWidth="1.6"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
-              </a>
-              <a href="https://www.linkedin.com/in/rizal-maulana-airlangga-072b21346/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-              </a>
-              <a href="mailto:rizalmaulanaairlangga456@gmail.com" aria-label="Email" className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-black transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6.5C4 5.67 4.67 5 5.5 5H18.5C19.33 5 20 5.67 20 6.5V17.5C20 18.33 19.33 19 18.5 19H5.5C4.67 19 4 18.33 4 17.5V6.5Z" stroke="currentColor" strokeWidth="1.5"/><path d="M5 7L12 12.5L19 7" stroke="currentColor" strokeWidth="1.5"/></svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
+      <MoreProjects projects={more} />
       </div>
       <SiteFooter />
     </main>

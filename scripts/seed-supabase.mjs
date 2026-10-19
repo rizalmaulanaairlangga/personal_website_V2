@@ -122,14 +122,12 @@ for (const r of toolsRows) {
   const title = r.Name;
   const logoInfo = findFile('Tools', title, 'logo');
   const payload = {
-    notion_id: r.id,
     name: r.Name,
     tool_id: r.tool_id ? parseInt(r.tool_id) : null,
     short_desc: r.short_desc,
     logo_file_name: r.logo || (logoInfo?.file || null),
     logo_storage_path: logoInfo ? `${logoInfo.bucket}/${logoInfo.storage_path}` : null,
     logo_public_url: logoInfo?.public_url || null,
-    notion_url: r.url,
     created_time: r.created_time || null,
     updated_time: r.last_edited_time || null
   };
@@ -151,7 +149,6 @@ for (const r of akademikRows) {
   const fotoInfo = findFile('Prestasi_Akademik', title, 'Foto');
   const fileInfo = findFile('Prestasi_Akademik', title, 'File');
   const payload = {
-    notion_id: r.id,
     name: r.Name,
     date: r.Date || null,
     status: r.Status,
@@ -162,7 +159,6 @@ for (const r of akademikRows) {
     file_storage_path: fileInfo ? `${fileInfo.bucket}/${fileInfo.storage_path}` : null,
     file_public_url: fileInfo?.public_url || null,
     terbaik: r.Terbaik === 'True' || r.Terbaik === 'true',
-    notion_url: r.url,
     created_time: r.created_time || null,
     updated_time: r.last_edited_time || null
   };
@@ -197,7 +193,6 @@ for (const r of nonRows) {
     }
   }
   const payload = {
-    notion_id: r.id,
     name: r.Name || null,
     date: r.Date || null,
     status: r.Status || null,
@@ -210,7 +205,6 @@ for (const r of nonRows) {
     terbaik: r.Terbaik === 'True',
     link: r.Link === 'True',
     link_lainnya: r['Link lainnya'] || null,
-    notion_url: r.url,
     created_time: r.created_time || null,
     updated_time: r.last_edited_time || null
   };
@@ -238,7 +232,6 @@ for (const r of allProyek) {
   const title = r.Name;
   const fotoInfo = findFile(r.db, title, 'Foto');
   const payload = {
-    notion_id: r.id,
     name: r.Name,
     description: r.Description,
     date: r.Date || null,
@@ -249,7 +242,6 @@ for (const r of allProyek) {
     repo_link: r.RepoLink,
     terbaik: r.Terbaik === 'True',
     source: r.source,
-    notion_url: r.url,
     created_time: r.created_time || null,
     updated_time: r.last_edited_time || null
   };
