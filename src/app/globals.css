@@ -299,9 +299,12 @@ a:focus-visible .site-logo-wipe {
   background-color: #7AB8E8;
   background-image: linear-gradient(
     180deg,
-    #FFFFFF 0,
-    rgba(255, 255, 255, 0) var(--footer-ceiling)
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.32) 46%,
+    rgba(255, 255, 255, 0) 100%
   );
+  background-size: 100% var(--footer-ceiling);
+  background-repeat: no-repeat;
 }
 .footer-inner {
   flex: 1;
@@ -478,16 +481,31 @@ a:focus-visible .site-logo-wipe {
   .footer-name { margin-top: 10px; }
 }
 
-/* Contact form: ink controls on the white surface, accent on focus. */
+/* Contact form: dark glass panel. Ink controls are replaced by translucent
+   dark ones; accent blue carries focus, invalid and submit states. */
+.contact-panel {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: rgba(18, 12, 12, 0.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 20px 50px rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+@media (min-width: 1024px) {
+  .contact-panel { border-radius: 24px; }
+}
 .field-input,
 .field-select,
 .field-textarea {
   display: block;
   width: 100%;
   border-radius: 10px;
-  border: 1px solid rgba(10, 4, 4, 0.16);
-  background-color: #FAFAFA;
-  color: #0A0404;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #F0F3FF;
   font-size: 15px;
   line-height: 1.4;
   transition:
@@ -499,28 +517,35 @@ a:focus-visible .site-logo-wipe {
 .field-select { min-height: 48px; padding: 12px 14px; }
 .field-textarea { min-height: 132px; padding: 12px 14px; resize: vertical; }
 .field-input::placeholder,
-.field-textarea::placeholder { color: rgba(10, 4, 4, 0.42); }
+.field-textarea::placeholder { color: rgba(240, 243, 255, 0.55); }
 .field-input:hover,
 .field-select:hover,
-.field-textarea:hover { border-color: rgba(10, 4, 4, 0.32); }
+.field-textarea:hover { border-color: rgba(255, 255, 255, 0.26); }
 .field-input:focus,
 .field-select:focus,
 .field-textarea:focus {
   outline: none;
   border-color: #7AB8E8;
-  background-color: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(122, 184, 232, 0.35);
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(122, 184, 232, 0.4);
 }
 .field-input[aria-invalid="true"],
 .field-select[aria-invalid="true"],
 .field-textarea[aria-invalid="true"] {
-  border-color: #B4432F;
-  background-color: #FFF8F6;
+  border-color: #FF9C8A;
+  background-color: rgba(255, 156, 138, 0.08);
 }
 .field-input[aria-invalid="true"]:focus,
 .field-select[aria-invalid="true"]:focus,
 .field-textarea[aria-invalid="true"]:focus {
-  box-shadow: 0 0 0 3px rgba(180, 67, 47, 0.25);
+  box-shadow: 0 0 0 3px rgba(255, 156, 138, 0.3);
+}
+.field-select {
+  color-scheme: dark;
+}
+.field-select option {
+  background-color: #141010;
+  color: #F0F3FF;
 }
 .submit-cta {
   background-color: #7AB8E8;
@@ -531,7 +556,7 @@ a:focus-visible .site-logo-wipe {
 .submit-cta:focus-visible { background-color: #9ACBF0; }
 .submit-cta:active { background-color: #6FB2E2; }
 .submit-cta:focus-visible {
-  outline: 2px solid #0A0404;
+  outline: 2px solid #FFFFFF;
   outline-offset: 3px;
 }
 

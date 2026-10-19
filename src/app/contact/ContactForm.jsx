@@ -31,8 +31,8 @@ function validate(values) {
   return errors;
 }
 
-const labelClass = "block text-[13px] lg:text-[14px] font-semibold tracking-[0.01em] text-[#0A0404]";
-const errorClass = "mt-1.5 block text-[13px] font-medium leading-[1.4] text-[#B4432F]";
+const labelClass = "block text-[13px] lg:text-[14px] font-semibold tracking-[0.01em] text-[#F0F3FF]";
+const errorClass = "mt-1.5 block text-[13px] font-medium leading-[1.4] text-[#FF9C8A]";
 
 export default function ContactForm() {
   const [values, setValues] = useState({ name: "", email: "", topic: "", message: "" });
@@ -95,10 +95,10 @@ export default function ContactForm() {
       encType="text/plain"
       aria-labelledby="contact-form-title"
     >
-      <h2 id="contact-form-title" className="text-[24px] lg:text-[30px] font-semibold tracking-[-0.02em] text-[#0A0404]">
+      <h2 id="contact-form-title" className="text-[24px] lg:text-[30px] font-semibold tracking-[-0.02em] text-white">
         Send a message
       </h2>
-      <p className="mt-2 text-[14px] lg:text-[15px] leading-[1.55] text-[#0A0404]/70">
+      <p className="mt-2 text-[14px] lg:text-[15px] leading-[1.55] text-white/70">
         All four fields are required. Sending opens your mail app with the message ready to go.
       </p>
 
@@ -213,16 +213,16 @@ export default function ContactForm() {
       </button>
 
       {status && (
-        <p role="status" className="mt-4 rounded-[10px] border border-[#7AB8E8] bg-[#7AB8E8]/15 px-4 py-3 text-[14px] leading-[1.5] text-[#0A0404]">
+        <p role="status" className="mt-4 rounded-[10px] border border-[#7AB8E8] bg-[#7AB8E8]/15 px-4 py-3 text-[14px] leading-[1.5] text-[#EAF4FC]">
           {status}
         </p>
       )}
 
-      <p className="mt-5 text-[13.5px] leading-[1.5] text-[#0A0404]/70">
+      <p className="mt-5 text-[13.5px] leading-[1.5] text-white/70">
         Prefer your own mail app? Write to{" "}
         <a
           href={`mailto:${EMAIL}`}
-          className="font-semibold text-[#0A0404] underline decoration-[#7AB8E8] decoration-2 underline-offset-2 hover:decoration-[#0A0404] transition-colors"
+          className="font-semibold text-white underline decoration-[#7AB8E8] decoration-2 underline-offset-2 hover:decoration-white transition-colors"
         >
           {EMAIL}
         </a>

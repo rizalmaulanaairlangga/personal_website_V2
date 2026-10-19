@@ -162,7 +162,7 @@ export default function Home() {
       <SiteNav />
 
       {}
-      <div className="relative z-10 bg-[#0a0404] border-b border-white/[0.06] shadow-[0_32px_100px_rgba(0,0,0,0.65)]">
+      <div className="relative z-10 bg-[#0a0404]">
       {}
       <section className="relative h-[100svh] min-h-[600px] lg:min-h-[640px] bg-[#0e0505] overflow-hidden grid-lines flex flex-col">
         {}
@@ -752,9 +752,9 @@ function WhoAmI() {
           <div className="relative rounded-[20px] lg:rounded-[24px] overflow-hidden bg-[#111010] border border-white/[0.08] shadow-[0_16px_48px_rgba(0,0,0,0.5)] min-h-[380px] lg:min-h-[520px] flex">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80&auto=format&fit=crop"
-              alt="Rizal dummy portrait"
-              className="absolute inset-0 w-full h-full object-cover"
+              src="/images/potret-mahasiswa-kampus.png"
+              alt="Rizal Maulana Airlangga at a campus event"
+              className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
               loading="lazy"
               decoding="async"
             />

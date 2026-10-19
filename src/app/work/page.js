@@ -24,7 +24,7 @@ export default async function AllProjects() {
   return (
     <main className="relative min-h-screen bg-[#0A0404] text-[#F0F3FF] overflow-x-clip [overscroll-behavior:none]">
       <SiteNav />
-      <div className="relative z-10 bg-[#0A0404] border-b border-white/[0.06] shadow-[0_32px_100px_rgba(0,0,0,0.65)]">
+      <div className="relative z-10 bg-[#0A0404]">
         <section className="pt-[76px] md:pt-[92px] bg-[#0A0404] overflow-hidden">
           <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-14 pb-8 lg:pb-10">
             <BackLink goBack href="/" className="inline-flex items-center gap-1.5 text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/60 hover:text-[#F0F3FF] transition-colors min-h-[44px]">
