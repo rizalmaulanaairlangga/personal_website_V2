@@ -54,7 +54,7 @@ Frame lama (`frames_detail`, `frames_gis`, `frames_sticky`, `analyze*.py`) sudah
 - `grid 2 cols gap 16px mt 40`. Setiap item `rounded 14px bg #EDEBE6 overflow-hidden aspect 4/3`. Kiri 5 tube stack, kanan open tube close-up. Tidak ada border.
 
 ### G. CTA Footer (Frame 0012-0013)
-- Full-width `bg #8FC6F0` (Bloom blue) `py 80 lg 120`. `Get started` 11px white/80 uppercase, `Let's *design* your next great package` 40-56px bold (design = script italic 48px blue-300), subtitle 13px white/70 max 42ch, button `Start a project →` pill white + blue arrow. Rounded top 0 — full bleed. Mobile stack center.
+- Full-width `bg #8FC6F0` (Bloom blue) `py 80 lg 120`. `OPEN TO OPPORTUNITIES` 11px white/80 uppercase, `Let's *design* your next great package` 40-56px bold (design = script italic 48px blue-300), subtitle 13px white/70 max 42ch, button `Start a project →` pill white + blue arrow. Rounded top 0 — full bleed. Mobile stack center.
 
 ### H. Next CTA
 - Di bawah Final result ada `Next →` 13px bold. Di Bloom link ke `/projects/roast`. Di personal website kita pakai "more projects" grid — perlu dipetakan.
