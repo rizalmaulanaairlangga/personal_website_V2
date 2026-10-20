@@ -9,6 +9,7 @@
   --line-strong: rgba(255, 255, 255, 0.09);
   --text: #F2F2F3;
   --arrow-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M4 9h10M10 5l4 4-4 4' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --arrow-mark-ne: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5.5 12.5L12.5 5.5M6.8 5.5h5.7v5.7' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 * { scrollbar-width: thin; scrollbar-color: #2A2A30 transparent; }
@@ -182,6 +183,12 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
   mask-position: center;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
+}
+
+/* Same mark, aimed up and to the right for outbound links. */
+.arrow-mark-ne {
+  -webkit-mask-image: var(--arrow-mark-ne);
+  mask-image: var(--arrow-mark-ne);
 }
 
 /* Both arrows slide right inside a fixed viewport, on the wipe's timing. */
