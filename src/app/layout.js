@@ -10,6 +10,7 @@ const caveat = Caveat({ subsets: ["latin"], weight: ["400", "500", "600", "700"]
 export const metadata = {
   title: "Personal Portofolio Website | Rizal Maulana Airlangga",
   description: "Crafting Web Experiences & Logic Solutions — Informatics student, web & logic projects, achievements.",
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({ children }) {
