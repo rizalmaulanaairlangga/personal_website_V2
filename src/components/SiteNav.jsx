@@ -81,7 +81,13 @@ export default function SiteNav() {
         sessionStorage.setItem("landing-scroll-y", "0");
         sessionStorage.removeItem("landing-restore");
       } catch {}
-      router.push(item.id === "home" ? "/" : "/#" + item.id);
+      /* Native hash navigation cannot reach a section on a page that is still
+         being client-rendered, so the router moves first and the landing page
+         finishes the move once its sections exist. */
+      try {
+        sessionStorage.setItem("landing-target", item.id === "home" ? "" : item.id);
+      } catch {}
+      router.push("/");
     }
   };
 

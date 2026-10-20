@@ -3,16 +3,7 @@ import { useRef, useState } from "react";
 
 const EMAIL = "rizalmaulanaairlangga456@gmail.com";
 
-const TOPICS = [
-  "Project Collaboration",
-  "Internship",
-  "PKL Opportunity",
-  "Technical Discussion",
-  "Feedback",
-  "Other",
-];
-
-const FIELD_ORDER = ["name", "email", "topic", "message"];
+const FIELD_ORDER = ["name", "email", "message"];
 
 function validate(values) {
   const errors = {};
@@ -21,8 +12,6 @@ function validate(values) {
   const email = values.email.trim();
   if (!email) errors.email = "Please enter your email address.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "That email address doesn't look right.";
-
-  if (!values.topic) errors.topic = "Pick what you'd like to discuss.";
 
   const message = values.message.trim();
   if (!message) errors.message = "Please write a message.";
@@ -35,15 +24,14 @@ const labelClass = "block text-[13px] lg:text-[14px] font-semibold tracking-[0.0
 const errorClass = "mt-1.5 block text-[13px] font-medium leading-[1.4] text-[#FF9C8A]";
 
 export default function ContactForm() {
-  const [values, setValues] = useState({ name: "", email: "", topic: "", message: "" });
+  const [values, setValues] = useState({ name: "", email: "", message: "" });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("");
 
   const nameRef = useRef(null);
   const emailRef = useRef(null);
-  const topicRef = useRef(null);
   const messageRef = useRef(null);
-  const refs = { name: nameRef, email: emailRef, topic: topicRef, message: messageRef };
+  const refs = { name: nameRef, email: emailRef, message: messageRef };
 
   const clearError = (field) => {
     setErrors((prev) => {
@@ -73,11 +61,10 @@ export default function ContactForm() {
       return;
     }
 
-    const subject = `[Portfolio] ${values.topic} — ${values.name.trim()}`;
+    const subject = `[Portfolio] Message from ${values.name.trim()}`;
     const body = [
       `Name: ${values.name.trim()}`,
       `Email: ${values.email.trim()}`,
-      `Topic: ${values.topic}`,
       "",
       values.message.trim(),
     ].join("\n");
@@ -99,7 +86,7 @@ export default function ContactForm() {
         Send a message
       </h2>
       <p className="mt-2 text-[14px] lg:text-[15px] leading-[1.55] text-white/70">
-        All four fields are required. Sending opens your mail app with the message ready to go.
+        All three fields are required. Sending opens your mail app with the message ready to go.
       </p>
 
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-5">
@@ -149,35 +136,6 @@ export default function ContactForm() {
           {errors.email && (
             <span id="contact-email-error" className={errorClass} role="alert">
               {errors.email}
-            </span>
-          )}
-        </div>
-
-        <div className="sm:col-span-2">
-          <label htmlFor="contact-topic" className={labelClass}>
-            What would you like to discuss?
-          </label>
-          <select
-            id="contact-topic"
-            name="topic"
-            required
-            ref={topicRef}
-            className="field-select mt-2"
-            value={values.topic}
-            onChange={onChange("topic")}
-            aria-invalid={errors.topic ? true : undefined}
-            aria-describedby={errors.topic ? "contact-topic-error" : undefined}
-          >
-            <option value="">Choose a topic</option>
-            {TOPICS.map((topic) => (
-              <option key={topic} value={topic}>
-                {topic}
-              </option>
-            ))}
-          </select>
-          {errors.topic && (
-            <span id="contact-topic-error" className={errorClass} role="alert">
-              {errors.topic}
             </span>
           )}
         </div>

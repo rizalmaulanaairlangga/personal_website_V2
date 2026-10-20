@@ -58,7 +58,10 @@ export default function Home() {
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
-        try { sessionStorage.setItem("landing-scroll-y", String(window.scrollY)); } catch {}
+        try {
+          if (sessionStorage.getItem("landing-target")) return;
+          sessionStorage.setItem("landing-scroll-y", String(window.scrollY));
+        } catch {}
       });
     };
     window.addEventListener("scroll", save, { passive: true });
@@ -106,6 +109,72 @@ export default function Home() {
       }
       sessionStorage.removeItem("landing-restore");
     } catch {}
+  }, [showIntro]);
+
+  /* Sections imported from another page arrive through a stored section id.
+     The jump needs two things a hash link cannot give it: the sections to
+     exist, and the layout to stop moving, since a route that is still growing
+     answers with the wrong offsets — and Lenis clamps its own scroll limit to
+     whatever height the page had when it last measured, which parks the scroll
+     short of the end. The document is the settle signal, and it has to hold
+     still across real time rather than a few animation frames. */
+  useEffect(() => {
+    if (showIntro) return;
+    const SECTION_IDS = ["projects", "about", "tools", "services", "process", "contact"];
+    let id = "";
+    try { id = sessionStorage.getItem("landing-target") || ""; } catch {}
+    if (!id || !SECTION_IDS.includes(id)) return;
+    let cancelled = false;
+    const started = performance.now();
+    let target = null;
+    let lastKey = "";
+    let heldSince = 0;
+    const tick = () => {
+      if (cancelled) return;
+      const elapsed = performance.now() - started;
+      if (!target) {
+        try { target = document.getElementById(id); } catch {}
+        if (!target) {
+          if (elapsed < 3000) requestAnimationFrame(tick);
+          else { try { sessionStorage.removeItem("landing-target"); } catch {} }
+          return;
+        }
+      }
+      const now = performance.now();
+      const doc = document.documentElement;
+      const key = Math.round(doc.scrollHeight) + ":" + Math.round(doc.clientHeight);
+      if (key !== lastKey) {
+        lastKey = key;
+        heldSince = now;
+      }
+      const held = now - heldSince;
+      /* A frame-by-frame comparison cannot tell a finished layout from one
+         that is merely between reflows, so the height has to stay put for a
+         real stretch of time before the jump is allowed to fire. */
+      if ((held < 900 && elapsed < 6000) || now - started < 1200) {
+        requestAnimationFrame(tick);
+        return;
+      }
+      try { sessionStorage.removeItem("landing-target"); } catch {}
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (cancelled) return;
+        const lenis = window.lenis;
+        try {
+          if (id === "contact") {
+            /* The footer is a fixed layer revealed at the end of the page, so
+               the document end is the only position that shows it whole. */
+            const end = document.documentElement.scrollHeight;
+            if (lenis?.scrollTo) lenis.scrollTo(end, { duration: 1.4 });
+            else window.scrollTo({ top: end, behavior: "smooth" });
+            return;
+          }
+          if (lenis?.scrollTo) lenis.scrollTo(target, { duration: 1.4 });
+          else target.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch {}
+      }));
+    };
+    requestAnimationFrame(tick);
+    return () => { cancelled = true; };
   }, [showIntro]);
 
   useEffect(() => {

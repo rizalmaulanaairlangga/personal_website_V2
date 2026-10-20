@@ -115,9 +115,9 @@ export default function SiteFooter({ spacerId }) {
             <p className="footer-support">
               I&apos;m a developer in the making, always curious about what&apos;s possible with technology. I&apos;m open to interesting projects, new challenges, and opportunities to collaborate.
             </p>
-            <a href="/contact" className="hero-cta hero-cta-secondary footer-cta btn-motion mt-[clamp(4px,1.2vh,14px)]">
+            <a href="/contact" className="detail-cta btn-motion mt-[clamp(4px,1.2vh,14px)] flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
               <span className="cta-label">Get in touch</span>
-              <span className="footer-cta-arrow">
+              <span className="w-10 h-10 rounded-full bg-[#7AB8E8] flex items-center justify-center shrink-0">
                 <span aria-hidden="true" className="cta-arrow-viewport">
                   <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
                   <span className="cta-arrow-icon cta-arrow-icon-front">→</span>

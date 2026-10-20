@@ -225,6 +225,17 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
 .more-projects-link .cta-arrow-icon-back,
 .detail-cta .cta-arrow-icon-front,
 .detail-cta .cta-arrow-icon-back { color: #FFFFFF; }
+/* On hover the outgoing arrow keeps the disc colour while the incoming one is
+   white, so the swap reads as a colour change over the same blue disc. */
+.detail-cta .cta-arrow-icon-back { color: #7AB8E8; }
+.detail-cta:hover .cta-arrow-icon-front,
+.detail-cta:focus-visible .cta-arrow-icon-front,
+.detail-cta:hover .cta-arrow-icon-back,
+.detail-cta:focus-visible .cta-arrow-icon-back { color: #FFFFFF; }
+.footer-cta:hover .cta-arrow-icon-front,
+.footer-cta:focus-visible .cta-arrow-icon-front,
+.footer-cta:hover .cta-arrow-icon-back,
+.footer-cta:focus-visible .cta-arrow-icon-back { color: #FFFFFF; }
 .hero-cta:hover .cta-arrow-icon-front,
 .hero-cta:focus-visible .cta-arrow-icon-front,
 .btn-motion:hover .cta-arrow-icon-front,
@@ -354,29 +365,6 @@ a:focus-visible .site-logo-wipe {
   color: #FFFFFF;
 }
 
-/* CTA: the shared white pill, with the blue arrow disc used by the other
-   work-page CTAs. Ink arrows keep the disc legible against its own blue. */
-.footer-cta {
-  min-height: 50px;
-  font-size: 16px;
-}
-.footer-cta .cta-arrow-icon-front,
-.footer-cta .cta-arrow-icon-back { color: #0A0404; }
-.footer-cta-arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 9999px;
-  background-color: #7AB8E8;
-}
-.footer-cta:focus-visible {
-  outline: 2px solid #0A0404;
-  outline-offset: 3px;
-}
-
 /* Contact row: three even columns, values lift one line on hover or focus. */
 .footer-contact {
   display: grid;
@@ -498,7 +486,6 @@ a:focus-visible .site-logo-wipe {
   .contact-panel { border-radius: 24px; }
 }
 .field-input,
-.field-select,
 .field-textarea {
   display: block;
   width: 100%;
@@ -513,16 +500,13 @@ a:focus-visible .site-logo-wipe {
     box-shadow 200ms ease-out,
     background-color 200ms ease-out;
 }
-.field-input,
-.field-select { min-height: 48px; padding: 12px 14px; }
+.field-input { min-height: 48px; padding: 12px 14px; }
 .field-textarea { min-height: 132px; padding: 12px 14px; resize: vertical; }
 .field-input::placeholder,
 .field-textarea::placeholder { color: rgba(240, 243, 255, 0.55); }
 .field-input:hover,
-.field-select:hover,
 .field-textarea:hover { border-color: rgba(255, 255, 255, 0.26); }
 .field-input:focus,
-.field-select:focus,
 .field-textarea:focus {
   outline: none;
   border-color: #7AB8E8;
@@ -530,22 +514,13 @@ a:focus-visible .site-logo-wipe {
   box-shadow: 0 0 0 3px rgba(122, 184, 232, 0.4);
 }
 .field-input[aria-invalid="true"],
-.field-select[aria-invalid="true"],
 .field-textarea[aria-invalid="true"] {
   border-color: #FF9C8A;
   background-color: rgba(255, 156, 138, 0.08);
 }
 .field-input[aria-invalid="true"]:focus,
-.field-select[aria-invalid="true"]:focus,
 .field-textarea[aria-invalid="true"]:focus {
   box-shadow: 0 0 0 3px rgba(255, 156, 138, 0.3);
-}
-.field-select {
-  color-scheme: dark;
-}
-.field-select option {
-  background-color: #141010;
-  color: #F0F3FF;
 }
 /* Back link: underline wipes right to left, arrow nudges left, text stays put. */
 .back-link {
