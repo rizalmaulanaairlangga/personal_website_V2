@@ -191,6 +191,28 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
   mask-image: var(--arrow-mark-ne);
 }
 
+/* Repository CTA: the logo turns a full circle with a little overshoot and
+   lands back where it started, so releasing the hover has nothing to undo. The
+   disc stays put — only the mark turns. */
+.repo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+.repo-mark svg { display: block; }
+@keyframes repo-mark-turn {
+  0%   { transform: rotate(0deg); }
+  70%  { transform: rotate(405deg); }
+  100% { transform: rotate(360deg); }
+}
+.detail-cta:hover .repo-mark,
+.detail-cta:focus-visible .repo-mark {
+  animation: repo-mark-turn 620ms cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
 /* Both arrows slide right inside a fixed viewport, on the wipe's timing. */
 .cta-arrow-viewport {
   display: inline-block;
@@ -561,6 +583,12 @@ a:focus-visible .site-logo-wipe {
   .site-logo,
   .site-logo-wipe {
     transition: none;
+  }
+  /* A full spin is exactly the kind of motion this setting exists to stop; the
+     wipe on the label still marks the hover. */
+  .detail-cta:hover .repo-mark,
+  .detail-cta:focus-visible .repo-mark {
+    animation: none;
   }
   /* The ticker's two copies are identical, so a static underline replaces the
      lift as the hover and focus feedback. */

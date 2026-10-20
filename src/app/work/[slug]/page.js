@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import SiteFooter from "@/components/SiteFooter";
 import SiteNav from "@/components/SiteNav";
 import BackLink from "./BackLink";
+import CtaButton from "./CtaButton";
 import MoreProjects from "./MoreProjects";
 import ScreenshotGallery from "./ScreenshotGallery";
 
@@ -66,34 +67,13 @@ export default async function WorkDetail({ params }) {
                 </p>
               )}
               <div className="flex flex-wrap gap-3 lg:justify-end">
+                {project.repo_link ? (
+                  <CtaButton kind="repo" label="View Repository" href={project.repo_link} />
+                ) : null}
                 {project.link_web ? (
-                  <a
-                    href={project.link_web}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="detail-cta btn-motion inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-[52px]"
-                  >
-                    <span className="cta-label">Visit Live Site</span>
-                    <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px] leading-none">
-                      <span aria-hidden="true" className="cta-arrow-viewport">
-                        <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
-                        <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
-                      </span>
-                    </span>
-                  </a>
+                  <CtaButton label="Visit Live Site" href={project.link_web} />
                 ) : (
-                  <a
-                    href="/#contact"
-                    className="detail-cta btn-motion inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors min-h-[52px]"
-                  >
-                    <span className="cta-label">Contact me</span>
-                    <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px]">
-                      <span aria-hidden="true" className="cta-arrow-viewport">
-                        <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
-                        <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
-                      </span>
-                    </span>
-                  </a>
+                  <CtaButton label="Contact me" href="/#contact" external={false} />
                 )}
               </div>
             </div>
@@ -210,23 +190,17 @@ export default async function WorkDetail({ params }) {
         </div>
       </section>
       <ScreenshotGallery projectId={project.id} projectName={project.name} />
-      {project.link_web ? (
+      {(project.repo_link || project.link_web) ? (
         <section className="bg-[#0A0404] pb-10 lg:pb-14">
-          <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] flex justify-center">
-            <a
-              href={project.link_web}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="detail-cta btn-motion inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-[52px]"
-            >
-              <span className="cta-label">Visit Live Site</span>
-              <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center text-[18px] leading-none">
-                <span aria-hidden="true" className="cta-arrow-viewport">
-                  <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
-                  <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
-                </span>
-              </span>
-            </a>
+          <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
+            <div className="flex flex-wrap gap-3 justify-center">
+              {project.repo_link ? (
+                <CtaButton kind="repo" label="View Repository" href={project.repo_link} />
+              ) : null}
+              {project.link_web ? (
+                <CtaButton label="Visit Live Site" href={project.link_web} />
+              ) : null}
+            </div>
           </div>
         </section>
       ) : null}
