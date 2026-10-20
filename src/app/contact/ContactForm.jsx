@@ -207,9 +207,17 @@ export default function ContactForm() {
         </div>
       </div>
 
-      <button type="submit" className="hero-cta submit-cta mt-6 inline-flex gap-2.5 font-semibold">
-        <span>Send Message</span>
-        <span className="arrow-mark w-4 h-4" aria-hidden />
+      <button
+        type="submit"
+        className="detail-cta btn-motion mt-6 inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white text-[#0A0404] text-[16px] lg:text-[17px] font-semibold hover:bg-white/90 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-[52px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7AB8E8]"
+      >
+        <span className="cta-label">Send Message</span>
+        <span className="w-10 h-10 rounded-full bg-[#7AB8E8] text-white flex items-center justify-center shrink-0">
+          <span aria-hidden="true" className="cta-arrow-viewport">
+            <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
+            <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
+          </span>
+        </span>
       </button>
 
       {status && (

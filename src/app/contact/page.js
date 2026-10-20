@@ -2,6 +2,7 @@ import Image from "next/image";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import ContactForm from "./ContactForm";
+import ContactGallery from "./ContactGallery";
 
 export const metadata = {
   title: "Contact | Rizal Maulana Airlangga",
@@ -12,32 +13,6 @@ const PORTRAIT = {
   src: "/images/modern-coding-workspace.png",
   alt: "Rizal working at his desk on a coding project",
 };
-
-const GALLERY = [
-  {
-    href: "/work/absensi-muda-mudi-gemurung-2",
-    src: "/images/projects/absensi-muda-mudi-gemurung-2/desktop-absensi-muda-mudi-gemurung-2.png",
-    sizes: "(min-width: 1024px) 62vw, 100vw",
-    name: "Absensi Muda-Mudi Gemurung 2",
-    type: "Attendance Web App",
-    ratio: "aspect-[16/9]",
-    span: "sm:col-span-2",
-    offset: "",
-    badge: "Latest Project",
-    label: "Desktop dashboard of the attendance web app",
-  },
-  {
-    href: "/work/assetrack-3d-landing-page",
-    src: "/images/projects/assetrack-3d-landing-page/phone-assetrack-3d-landing-page.jpeg",
-    sizes: "(min-width: 1024px) 31vw, 100vw",
-    name: "AssetTrack 3D Landing Page",
-    type: "3D Landing Page",
-    ratio: "aspect-[3/4]",
-    span: "",
-    offset: "sm:mt-12 lg:mt-16",
-    label: "Mobile view of the 3D landing page",
-  },
-];
 
 export default function ContactPage() {
   return (
@@ -118,42 +93,19 @@ export default function ContactPage() {
               </div>
               <a
                 href="/work"
-                className="group inline-flex items-center gap-2 text-[14px] lg:text-[15px] font-semibold text-white hover:text-[#7AB8E8] transition-colors"
+                className="more-projects-link btn-motion flex items-center gap-3 group shrink-0"
               >
-                View all projects
-                <span className="arrow-mark w-4 h-4 transition-transform duration-300 ease-out group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden />
+                <span className="w-10 h-10 rounded-[10px] bg-[#7AB8E8] flex items-center justify-center text-white text-[18px]">
+                  <span aria-hidden="true" className="cta-arrow-viewport">
+                    <span className="cta-arrow-icon cta-arrow-icon-back">→</span>
+                    <span className="cta-arrow-icon cta-arrow-icon-front">→</span>
+                  </span>
+                </span>
+                <span className="cta-label text-[15px] lg:text-[16px] font-medium tracking-[-0.02em]">View all projects</span>
               </a>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6 items-start">
-              {GALLERY.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className={`group relative block overflow-hidden rounded-[20px] lg:rounded-[24px] border border-white/[0.08] bg-white/[0.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7AB8E8] ${item.span} ${item.offset}`}
-                >
-                  <div className={`relative w-full overflow-hidden ${item.ratio}`}>
-                    <Image
-                      fill
-                      sizes={item.sizes}
-                      src={item.src}
-                      alt={`${item.name} — ${item.label}`}
-                      className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-4 lg:p-6">
-                      {item.badge && (
-                        <span className="mb-2 inline-flex items-center rounded-full border border-[#7AB8E8]/45 bg-[#7AB8E8]/15 px-3 py-1 text-[10px] lg:text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-[#7AB8E8]">
-                          {item.badge}
-                        </span>
-                      )}
-                      <p className="text-[17px] lg:text-[22px] font-semibold tracking-[-0.01em] text-white">{item.name}</p>
-                      <p className="mt-1 text-[11px] lg:text-[12px] font-mono uppercase tracking-[0.16em] text-white/70">{item.type}</p>
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
+            <ContactGallery />
           </div>
         </section>
       </div>
