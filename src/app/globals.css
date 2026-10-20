@@ -222,20 +222,14 @@ html.lenis, html.lenis body { height: auto; overscroll-behavior: none; }
 .hero-cta-secondary .cta-arrow-icon-front { color: #0A0404; }
 .hero-cta-secondary .cta-arrow-icon-back { color: #7AB8E8; }
 .more-projects-link .cta-arrow-icon-front,
-.more-projects-link .cta-arrow-icon-back,
-.detail-cta .cta-arrow-icon-front,
-.detail-cta .cta-arrow-icon-back { color: #FFFFFF; }
-/* On hover the outgoing arrow keeps the disc colour while the incoming one is
-   white, so the swap reads as a colour change over the same blue disc. */
-.detail-cta .cta-arrow-icon-back { color: #7AB8E8; }
-.detail-cta:hover .cta-arrow-icon-front,
-.detail-cta:focus-visible .cta-arrow-icon-front,
-.detail-cta:hover .cta-arrow-icon-back,
-.detail-cta:focus-visible .cta-arrow-icon-back { color: #FFFFFF; }
-.footer-cta:hover .cta-arrow-icon-front,
-.footer-cta:focus-visible .cta-arrow-icon-front,
-.footer-cta:hover .cta-arrow-icon-back,
-.footer-cta:focus-visible .cta-arrow-icon-back { color: #FFFFFF; }
+.more-projects-link .cta-arrow-icon-back { color: #FFFFFF; }
+/* The disc is blue, so the resting arrow is white and the one that slides in
+   is ink: the swap reads as a colour change, and the reverse on leave needs no
+   rule of its own. Colour is fixed per arrow — only the transform swaps them. */
+.detail-cta .cta-arrow-icon-front { color: #FFFFFF; }
+.detail-cta .cta-arrow-icon-back { color: #0A0404; }
+.footer-cta .cta-arrow-icon-front { color: #FFFFFF; }
+.footer-cta .cta-arrow-icon-back { color: #0A0404; }
 .hero-cta:hover .cta-arrow-icon-front,
 .hero-cta:focus-visible .cta-arrow-icon-front,
 .btn-motion:hover .cta-arrow-icon-front,
