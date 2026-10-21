@@ -173,12 +173,46 @@ The CMS deploys independently of the public portfolio.
 
 ---
 
+## Verification scripts
+
+`scripts/` holds three checks that exercise the running application against
+the real database and the real Storage bucket. They create and remove their
+own test records, and clean up after themselves.
+
+```bash
+# start the app first
+npm run dev
+
+# in another shell
+export CMS_ADMIN_EMAIL="you@example.com"
+export CMS_ADMIN_PASSWORD="your-password"
+export CMS_BASE="http://localhost:3000"
+
+python scripts/verify_cms.py       # auth, CRUD, uploads, replacement, removal, deletion
+python scripts/verify_failure.py   # a failed write releases the objects it uploaded
+python scripts/verify_ui.py        # tooltips, slug validation, preview, responsive layout
+```
+
+`verify_ui.py` needs Playwright with Chromium:
+
+```bash
+pip install playwright pillow
+playwright install chromium
+```
+
+The scripts read `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+and `SUPABASE_SERVICE_ROLE_KEY` from `.env.local` so they can confirm the
+bucket state directly. The service-role key is used by the checks only, never
+by the application.
+
+---
+
 ## Commands
 
 ```bash
-npm run dev     # start the dev server
-npm run build   # production build
-npm run start   # serve the production build
-npm run lint    # eslint
+npm run dev       # start the dev server
+npm run build     # production build
+npm run start     # serve the production build
+npm run lint      # eslint
 npm run typecheck # tsc --noEmit
 ```
