@@ -5,7 +5,9 @@ import sys
 from playwright.sync_api import sync_playwright
 
 BASE = os.environ.get("CMS_BASE", "http://localhost:3000")
-CREDS = os.path.join(os.environ["TEMP"], "cms_admin_credentials.txt")
+CREDS = os.environ.get(
+    "CMS_CREDENTIALS_FILE", os.path.join(os.environ["TEMP"], "cms_admin_credentials.txt")
+)
 
 EMAIL = os.environ.get("CMS_ADMIN_EMAIL")
 PASSWORD = os.environ.get("CMS_ADMIN_PASSWORD")

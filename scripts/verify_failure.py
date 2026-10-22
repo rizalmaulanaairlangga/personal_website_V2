@@ -15,6 +15,9 @@ import zlib
 import struct
 
 BASE = os.environ.get("CMS_BASE", "http://localhost:3000")
+CREDS = os.environ.get(
+    "CMS_CREDENTIALS_FILE", os.path.join(os.environ["TEMP"], "cms_admin_credentials.txt")
+)
 ENV = os.environ.get("CMS_ENV_FILE", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env.local"))
 
 env = {}
