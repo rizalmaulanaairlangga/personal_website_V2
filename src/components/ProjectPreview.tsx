@@ -1,6 +1,6 @@
 "use client";
 
-import { Project, ProjectScreenshot, VIEW_TYPE_LABELS } from "@/lib/types";
+import { Project } from "@/lib/types";
 
 interface ProjectPreviewProps {
   project: Partial<Project> & Record<string, unknown>;
@@ -27,26 +27,33 @@ export function ProjectPreview({ project, screenshots }: ProjectPreviewProps) {
     { key: "solution", label: "Final result", data: project.solution },
   ].filter((s) => s.data?.body);
 
-  const deviceScreens = (
-    [
-      { key: "mobile", label: "Mobile", image: screenshots.mobile },
-      { key: "tablet", label: "Tablet", image: screenshots.tablet },
-    ] as { key: "mobile" | "tablet"; label: string; image: string | null }[]
+  const mobileOnly = project.screenshot_layout === "mobile_only";
+  const deviceScreens: { key: string; label: string; image: string | null }[] = (
+    mobileOnly
+      ? [
+          { key: "mobile", label: "Mobile 1", image: screenshots.mobile },
+          { key: "mobile2", label: "Mobile 2", image: screenshots.mobile2 },
+          { key: "mobile3", label: "Mobile 3", image: screenshots.mobile3 },
+        ]
+      : [
+          { key: "mobile", label: "Mobile", image: screenshots.mobile },
+          { key: "tablet", label: "Tablet", image: screenshots.tablet },
+        ]
   ).filter((s) => s.image);
 
   return (
-    <div className="rounded-2xl border border-border bg-[#0A0404] overflow-hidden">
-      <div className="px-4 py-3 border-b border-border bg-white/[0.03] flex items-center gap-2">
+    <div className="min-w-0 rounded-2xl border border-border bg-[#0A0404] overflow-hidden">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border bg-white/[0.03] px-4 py-3">
         <span className="w-2 h-2 rounded-full bg-warning" aria-hidden="true" />
         <span className="text-xs font-mono tracking-wider uppercase text-text-dim">Draft preview</span>
-        <span className="text-xs text-text-dim ml-auto">Not published until you save</span>
+        <span className="ml-auto text-xs text-text-dim">Not published until you save</span>
       </div>
 
-      <div className="p-6 space-y-8">
+      <div className="min-w-0 space-y-8 p-4 sm:p-6">
         {/* Hero */}
         <section className="space-y-3">
           <p className="text-xs font-mono text-text-dim">HERO</p>
-          <h2 className="text-3xl font-black tracking-tight text-text">{project.name || "Untitled project"}</h2>
+          <h2 className="break-words text-2xl font-black tracking-tight text-text sm:text-3xl">{project.name || "Untitled project"}</h2>
           {project.hero_subtitle && (
             <p className="text-sm text-text-muted max-w-[60ch]">{project.hero_subtitle}</p>
           )}
@@ -64,7 +71,7 @@ export function ProjectPreview({ project, screenshots }: ProjectPreviewProps) {
         </section>
 
         {/* Metadata strip */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           {[
             { label: "Service", value: project.project_type || "—" },
             { label: "Year", value: String(year) },
@@ -73,7 +80,7 @@ export function ProjectPreview({ project, screenshots }: ProjectPreviewProps) {
           ].map((item) => (
             <div key={item.label} className="rounded-xl bg-white/[0.05] border border-white/[0.12] p-3">
               <p className="text-[10px] font-mono tracking-widest uppercase text-text-dim">{item.label}</p>
-              <p className="mt-1.5 text-sm font-semibold text-text line-clamp-2">{item.value}</p>
+              <p className="mt-1.5 break-words text-sm font-semibold text-text line-clamp-2">{item.value}</p>
             </div>
           ))}
         </section>
@@ -95,18 +102,29 @@ export function ProjectPreview({ project, screenshots }: ProjectPreviewProps) {
         {/* Hero image */}
         {project.foto_public_url && (
           <section>
-            <p className="text-xs font-mono text-text-dim mb-3">HERO IMAGE</p>
-            <div className="relative overflow-hidden rounded-xl bg-[#111010] border border-white/[0.10] aspect-[16/10] lg:aspect-[16/8]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={project.foto_public_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-            </div>
+            <p className="text-xs font-mono text-text-dim mb-3">
+              {mobileOnly ? "HERO MOBILE SCREENSHOT" : "HERO IMAGE"}
+            </p>
+            {mobileOnly ? (
+              <div className="flex justify-center rounded-xl border border-white/[0.10] bg-[#111010] p-6">
+                <div className="relative aspect-[9/19.5] w-40 overflow-hidden rounded-[24px] border-2 border-primary/50 bg-black p-1.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={project.foto_public_url} alt="" className="h-full w-full rounded-[18px] object-contain" />
+                </div>
+              </div>
+            ) : (
+              <div className="relative aspect-[16/10] overflow-hidden rounded-xl border border-white/[0.10] bg-[#111010] lg:aspect-[16/8]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={project.foto_public_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              </div>
+            )}
           </section>
         )}
 
         {/* Content sections */}
-        <section className={`grid gap-8 ${hasCredits ? "lg:grid-cols-[0.82fr_1.18fr]" : "grid-cols-1"}`}>
+        <section className={`grid min-w-0 gap-8 ${hasCredits ? "xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]" : "grid-cols-1"}`}>
           {hasCredits && (
-            <div className="rounded-xl bg-white/[0.05] border border-white/[0.12] p-5 h-fit">
+            <div className="h-fit min-w-0 rounded-xl border border-white/[0.12] bg-white/[0.05] p-5">
               <p className="text-[10px] font-mono tracking-widest uppercase text-text-dim mb-3">Credits</p>
               {teamQuote && (
                 <p className="text-sm leading-relaxed text-text mb-4 line-clamp-6">
@@ -117,8 +135,8 @@ export function ProjectPreview({ project, screenshots }: ProjectPreviewProps) {
               <div className="space-y-2">
                 {credits.map((c) => (
                   <div key={c.name} className="flex items-baseline justify-between gap-3 py-1.5 border-b border-white/[0.06] last:border-0">
-                    <span className="text-sm text-text">{c.name}</span>
-                    <span className="text-[11px] font-mono uppercase text-text-dim shrink-0">{c.role}</span>
+                    <span className="min-w-0 break-words text-sm text-text">{c.name}</span>
+                    <span className="max-w-[45%] break-words text-right text-[11px] font-mono uppercase text-text-dim">{c.role}</span>
                   </div>
                 ))}
               </div>
@@ -137,7 +155,7 @@ export function ProjectPreview({ project, screenshots }: ProjectPreviewProps) {
                 {s.data?.title && (
                   <p className="mt-1.5 text-sm font-medium text-text/90">{s.data.title}</p>
                 )}
-                <p className="mt-2.5 text-sm leading-relaxed text-text-muted whitespace-pre-line">
+                <p className="mt-2.5 break-words text-sm leading-relaxed text-text-muted whitespace-pre-line">
                   {s.data?.body}
                 </p>
               </article>
@@ -149,18 +167,18 @@ export function ProjectPreview({ project, screenshots }: ProjectPreviewProps) {
         {deviceScreens.length > 0 && (
           <section>
             <p className="text-xs font-mono text-text-dim mb-3">DEVICE SHOWCASE</p>
-            <div className="flex items-end justify-center gap-8 py-6 rounded-xl bg-white/[0.02] border border-border">
+            <div className="flex flex-wrap items-end justify-center gap-5 rounded-xl border border-border bg-white/[0.02] py-6 sm:gap-8">
               {deviceScreens.map((s) => (
                 <div key={s.key} className="text-center">
                   <div
                     className={`relative overflow-hidden border-2 border-white/15 bg-black shadow-2xl ${
-                      s.key === "mobile" ? "w-[120px] h-[240px] rounded-[20px]" : "w-[200px] h-[160px] rounded-[16px]"
+                      s.key.startsWith("mobile") ? "w-[120px] h-[240px] rounded-[20px]" : "w-[200px] h-[160px] rounded-[16px]"
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={s.image!} alt={`${s.label} screenshot`} className="absolute inset-0 w-full h-full object-cover" />
                   </div>
-                  <p className="mt-2 text-[10px] font-mono uppercase text-text-dim">{VIEW_TYPE_LABELS[s.key]}</p>
+                  <p className="mt-2 text-[10px] font-mono uppercase text-text-dim">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -168,7 +186,7 @@ export function ProjectPreview({ project, screenshots }: ProjectPreviewProps) {
         )}
 
         {/* Desktop additional */}
-        {screenshots.desktop && (
+        {!mobileOnly && screenshots.desktop && (
           <section>
             <p className="text-xs font-mono text-text-dim mb-3">DESKTOP ADDITIONAL</p>
             <div className="overflow-hidden rounded-xl border border-white/[0.10] bg-[#111010]">

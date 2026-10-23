@@ -30,10 +30,15 @@ refresh.
 | Team quote | `proyek_web.team_quote` | — |
 | Live URL | `proyek_web.link_web` | — |
 | Repository URL | `proyek_web.repo_link` | — |
-| Hero Desktop image | `proyek_web.foto_public_url` / `.foto_storage_path` / `.foto_file_name` | `<Project Name>/Foto/hero-<slug>.<ext>` |
-| Mobile image | `project_screenshots` row, `view_type = 'mobile'` | `<Project Name>/Foto/mobile-<slug>.<ext>` |
+| Screenshot layout | `proyek_web.screenshot_layout` (`responsive` or `mobile_only`) | — |
+| Hero image | `proyek_web.foto_public_url` / `.foto_storage_path` / `.foto_file_name` | `<Project Name>/Foto/hero-<slug>.<ext>` |
+| Mobile screenshots | `project_screenshots` rows, `view_type = 'mobile'`, `sort_order = 0–2` | `<Project Name>/Foto/mobile-<slug>.<ext>` |
 | Tablet image | `project_screenshots` row, `view_type = 'tablet'` | `<Project Name>/Foto/tablet-<slug>.<ext>` |
 | Desktop Additional image | `project_screenshots` row, `view_type = 'desktop'` | `<Project Name>/Foto/desktop-<slug>.<ext>` |
+
+The hero image is shown as a phone mockup for `mobile_only` projects. The
+existing `mobile` screenshot role supports up to three additional screenshots,
+ordered by `sort_order`; tablet and desktop roles remain unchanged.
 
 The Storage bucket is the existing public bucket `portfolio-proyek`. Files are
 stored under the project folder that already exists for that project, so the
@@ -41,6 +46,25 @@ CMS writes alongside the assets that are already there.
 
 The legacy `proyek_web.gallery` column is left untouched. The public project
 page reads `project_screenshots`, which is what the CMS writes.
+
+### AI prompt and JSON import
+
+The project form starts with the AI prompt copy action and a JSON import field.
+Paste the JSON object returned by the prompt and choose **Apply JSON to form**
+to populate project metadata. The CMS validates required fields, dates, URLs,
+and origin values before applying anything; it does not save automatically.
+Blank or omitted values leave current form values unchanged. An explicitly
+blank date clears the prefilled date on a new project so an unknown date is not
+saved as today's date. Screenshot files are managed separately and are not
+modified by a JSON import.
+
+### Database migration
+
+Apply `supabase/migrations/20261022033231_add_project_screenshot_layout.sql`
+from the public portfolio repository before using the layout selector. This
+additive migration adds `proyek_web.screenshot_layout` with a `responsive`
+default and marks existing projects as `mobile_only` only when they have mobile
+screenshots and no tablet or desktop screenshots.
 
 ---
 
@@ -164,8 +188,9 @@ The CMS deploys independently of the public portfolio.
 - Route handlers that touch the database or Storage re-verify the session
   before doing anything, so a middleware gap cannot expose the data.
 - The delete endpoint for Storage refuses any path that does not start with
-  the target project's own folder, so one project cannot delete another's
-  files.
+  the target project's own folder and checks that the object is no longer
+  referenced before deleting it, so one project cannot delete another's files
+  or remove an asset still in use.
 - Deleting a project removes its database row and its `project_screenshots`
   rows. The Storage objects are **left in place** on purpose — a folder may
   still be referenced by legacy rows. Prune the bucket separately once you

@@ -1,10 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import { parseProjectJson } from "@/lib/project-json.mjs";
+import type { ProjectMetadataImport } from "@/lib/types";
 
-export function AIPromptButton() {
+interface AIPromptButtonProps {
+  onImport: (metadata: ProjectMetadataImport) => void;
+}
+
+export function AIPromptButton({ onImport }: AIPromptButtonProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "copied" | "failed">("idle");
   const [fallback, setFallback] = useState<string | null>(null);
+  const [jsonText, setJsonText] = useState("");
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState(false);
+
+  const applyJson = () => {
+    const result = parseProjectJson(jsonText);
+    if (result.error) {
+      setImportError(result.error);
+      setImportSuccess(false);
+      return;
+    }
+    if (!result.data) {
+      setImportError("Could not read project metadata from the JSON response.");
+      setImportSuccess(false);
+      return;
+    }
+
+    onImport(result.data);
+    setImportError(null);
+    setImportSuccess(true);
+  };
 
   const handleClick = async () => {
     setStatus("loading");
@@ -33,9 +60,9 @@ export function AIPromptButton() {
     <div className="rounded-xl border border-primary/25 bg-primary/[0.06] p-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-text">Need the copy written?</p>
+          <p className="text-sm font-semibold text-text">AI project input</p>
           <p className="text-xs text-text-muted mt-0.5">
-            Copies a ready-to-paste brief for an AI assistant, with the exact field schema.
+            Copy the prompt, give it your project details, then paste the JSON reply below. Applying it fills the form without saving.
           </p>
         </div>
         <button
@@ -87,6 +114,47 @@ export function AIPromptButton() {
           />
         </div>
       )}
+
+      <div className="mt-4 border-t border-border pt-4">
+        <label htmlFor="ai-project-json" className="text-sm font-semibold text-text">
+          Paste AI JSON response
+        </label>
+        <p className="mt-1 text-xs text-text-muted">
+          Paste the JSON object from the prompt. Blank or omitted values keep current values, except an empty date clears the new-project default. Review before saving.
+        </p>
+        <textarea
+          id="ai-project-json"
+          aria-label="Paste AI JSON response"
+          value={jsonText}
+          onChange={(event) => {
+            setJsonText(event.target.value);
+            setImportError(null);
+            setImportSuccess(false);
+          }}
+          className="textarea mt-2 min-h-[180px] font-mono text-xs"
+          placeholder={'{\n  "name": "Project name",\n  "slug": "project-name"\n}'}
+          spellCheck={false}
+        />
+        <div className="mt-3 flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={applyJson}
+            className="btn-secondary min-h-11 px-4 py-2.5 text-sm"
+          >
+            Apply JSON to form
+          </button>
+          {importSuccess && (
+            <p className="text-sm text-success" role="status">
+              JSON applied. Review the fields before saving.
+            </p>
+          )}
+          {importError && (
+            <p className="text-sm text-danger" role="alert">
+              {importError}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

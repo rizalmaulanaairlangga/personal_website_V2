@@ -10,6 +10,7 @@ import {
   ProjectFormData,
   ProjectScreenshot,
   ProjectSection,
+  ScreenshotLayout,
   ScreenshotRoleKey,
 } from "@/lib/types";
 import { publicUrlFor } from "@/lib/data";
@@ -20,6 +21,7 @@ import { ScreenshotManager } from "@/components/form/ScreenshotManager";
 import { AIPromptButton } from "@/components/form/AIPromptButton";
 import { ProjectPreview } from "@/components/ProjectPreview";
 import { Header } from "@/components/Header";
+import type { ProjectMetadataImport } from "@/lib/project-json.mjs";
 
 type Mode = "create" | "edit";
 
@@ -58,10 +60,18 @@ export function ProjectFormClient({ mode, initialData }: Props) {
     const byType = (t: ProjectScreenshot["view_type"]) =>
       initialData.screenshots.find((s) => s.view_type === t) || null;
 
-    const heroPath = p.foto_storage_path;
-    const mobile = byType("mobile");
+    const storedHeroPath = p.foto_storage_path;
+    const heroPath = storedHeroPath?.startsWith("portfolio-proyek/")
+      ? storedHeroPath.slice("portfolio-proyek/".length)
+      : storedHeroPath;
+    const mobileShots = initialData.screenshots
+      .filter((s) => s.view_type === "mobile")
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .slice(0, 3);
     const tablet = byType("tablet");
     const desktop = byType("desktop");
+    const screenshotLayout: ScreenshotLayout =
+      p.screenshot_layout === "mobile_only" ? "mobile_only" : "responsive";
 
     const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const publicOf = (path: string | null) =>
@@ -79,6 +89,8 @@ export function ProjectFormClient({ mode, initialData }: Props) {
       hero_subtitle: p.hero_subtitle || "",
       project_context: p.project_context || "",
       team_quote: p.team_quote || "",
+      seo_title: p.seo_title || "",
+      seo_desc: p.seo_desc || "",
       link_web: p.link_web || "",
       repo_link: p.repo_link || "",
       source: p.source || "",
@@ -87,19 +99,32 @@ export function ProjectFormClient({ mode, initialData }: Props) {
       challenge: sectionOf(p.challenge, "Challenge"),
       solution: sectionOf(p.solution, "Solution"),
       credits: p.credits && p.credits.length ? p.credits : [{ name: "", role: "" }],
-      screenshots: { hero: null, mobile: null, tablet: null, desktop: null },
-      screenshotPreviews: { hero: null, mobile: null, tablet: null, desktop: null },
+      screenshotLayout,
+      screenshots: { hero: null, mobile: null, mobile2: null, mobile3: null, tablet: null, desktop: null },
+      screenshotPreviews: { hero: null, mobile: null, mobile2: null, mobile3: null, tablet: null, desktop: null },
       existingScreenshots: {
-        hero: p.foto_public_url || null,
-        mobile: publicOf(mobile?.image_path || null),
+        hero: p.foto_public_url || publicOf(heroPath || null),
+        mobile: publicOf(mobileShots[0]?.image_path || null),
+        mobile2: publicOf(mobileShots[1]?.image_path || null),
+        mobile3: publicOf(mobileShots[2]?.image_path || null),
         tablet: publicOf(tablet?.image_path || null),
         desktop: publicOf(desktop?.image_path || null),
       },
       existingScreenshotPaths: {
         hero: heroPath || null,
-        mobile: mobile?.image_path || null,
+        mobile: mobileShots[0]?.image_path || null,
+        mobile2: mobileShots[1]?.image_path || null,
+        mobile3: mobileShots[2]?.image_path || null,
         tablet: tablet?.image_path || null,
         desktop: desktop?.image_path || null,
+      },
+      removedScreenshotRoles: {
+        hero: false,
+        mobile: false,
+        mobile2: false,
+        mobile3: false,
+        tablet: false,
+        desktop: false,
       },
     };
   });
@@ -142,6 +167,24 @@ export function ProjectFormClient({ mode, initialData }: Props) {
 
   const setCredits = (credits: Credit[]) => {
     setForm((f) => ({ ...f, credits }));
+    setDirty(true);
+  };
+
+  const applyProjectMetadata = (metadata: ProjectMetadataImport) => {
+    setSlugTouched(true);
+    setForm((current) => ({
+      ...current,
+      ...metadata,
+      date:
+        metadata.date === ""
+          ? mode === "create" && current.date === DEFAULT_FORM_DATA.date
+            ? ""
+            : current.date
+          : metadata.date ?? current.date,
+      brief: { ...current.brief, ...metadata.brief },
+      challenge: { ...current.challenge, ...metadata.challenge },
+      solution: { ...current.solution, ...metadata.solution },
+    }));
     setDirty(true);
   };
 
@@ -233,6 +276,7 @@ export function ProjectFormClient({ mode, initialData }: Props) {
         ...f,
         screenshots: { ...f.screenshots, [role]: file },
         screenshotPreviews: previews,
+        removedScreenshotRoles: { ...f.removedScreenshotRoles, [role]: false },
       };
     });
     setDirty(true);
@@ -250,6 +294,8 @@ export function ProjectFormClient({ mode, initialData }: Props) {
         ...f,
         screenshots: { ...f.screenshots, [role]: null },
         screenshotPreviews: previews,
+        existingScreenshots: { ...f.existingScreenshots, [role]: null },
+        removedScreenshotRoles: { ...f.removedScreenshotRoles, [role]: true },
       };
     });
     setDirty(true);
@@ -262,12 +308,14 @@ export function ProjectFormClient({ mode, initialData }: Props) {
         ? `${base}/storage/v1/object/public/portfolio-proyek/${path.split("/").map(encodeURIComponent).join("/")}`
         : null;
     return {
-      hero: form.screenshotPreviews.hero || form.existingScreenshots.hero,
-      mobile: form.screenshotPreviews.mobile || form.existingScreenshots.mobile,
-      tablet: form.screenshotPreviews.tablet || form.existingScreenshots.tablet,
-      desktop: form.screenshotPreviews.desktop || form.existingScreenshots.desktop,
+      hero: form.removedScreenshotRoles.hero ? null : form.screenshotPreviews.hero || form.existingScreenshots.hero,
+      mobile: form.removedScreenshotRoles.mobile ? null : form.screenshotPreviews.mobile || form.existingScreenshots.mobile,
+      mobile2: form.removedScreenshotRoles.mobile2 ? null : form.screenshotPreviews.mobile2 || form.existingScreenshots.mobile2,
+      mobile3: form.removedScreenshotRoles.mobile3 ? null : form.screenshotPreviews.mobile3 || form.existingScreenshots.mobile3,
+      tablet: form.removedScreenshotRoles.tablet ? null : form.screenshotPreviews.tablet || form.existingScreenshots.tablet,
+      desktop: form.removedScreenshotRoles.desktop ? null : form.screenshotPreviews.desktop || form.existingScreenshots.desktop,
     };
-  }, [form.screenshotPreviews, form.existingScreenshots]);
+  }, [form.screenshotPreviews, form.existingScreenshots, form.removedScreenshotRoles]);
 
   const previewProject = useMemo(
     () => ({
@@ -288,6 +336,7 @@ export function ProjectFormClient({ mode, initialData }: Props) {
       solution: form.solution,
       credits: form.credits.filter((c) => c.name.trim()),
       foto_public_url: previewImageUrls.hero,
+      screenshot_layout: form.screenshotLayout,
     }),
     [form, previewImageUrls]
   );
@@ -304,6 +353,9 @@ export function ProjectFormClient({ mode, initialData }: Props) {
     if (!form.slug.trim()) {
       setError("Slug is required.");
       return;
+    }    if (form.screenshotLayout === "mobile_only" && !form.screenshots.hero && !form.existingScreenshots.hero) {
+      setError("Hero Mobile is required for mobile-only projects.");
+      return;
     }
     if (slugStatus === "error") {
       setError(slugMessage || "The slug is not valid.");
@@ -316,11 +368,12 @@ export function ProjectFormClient({ mode, initialData }: Props) {
 
     setSaving(true);
 
+    const uploadedPaths: Partial<Record<ScreenshotRoleKey, string>> = {};
+
     try {
       // 1. Upload the newly chosen files first. Each gets a fresh name, so the
       //    objects the database still points at stay intact until step 3.
-      const uploadedPaths: Partial<Record<ScreenshotRoleKey, string>> = {};
-      const roles: ScreenshotRoleKey[] = ["hero", "mobile", "tablet", "desktop"];
+      const roles: ScreenshotRoleKey[] = ["hero", "mobile", "mobile2", "mobile3", "tablet", "desktop"];
 
       for (const role of roles) {
         const file = form.screenshots[role];
@@ -342,17 +395,25 @@ export function ProjectFormClient({ mode, initialData }: Props) {
 
       // 2. Work out the final path for every role. A role keeps its stored
       //    path unless a new file was chosen or the image was removed.
+      const finalPath = (role: ScreenshotRoleKey) =>
+        uploadedPaths[role] ??
+        (form.removedScreenshotRoles[role] ? null : form.existingScreenshotPaths[role] ?? null);
       const finalPaths: Record<ScreenshotRoleKey, string | null> = {
-        hero: uploadedPaths.hero ?? form.existingScreenshotPaths.hero ?? null,
-        mobile: uploadedPaths.mobile ?? form.existingScreenshotPaths.mobile ?? null,
-        tablet: uploadedPaths.tablet ?? form.existingScreenshotPaths.tablet ?? null,
-        desktop: uploadedPaths.desktop ?? form.existingScreenshotPaths.desktop ?? null,
+        hero: finalPath("hero"),
+        mobile: finalPath("mobile"),
+        mobile2: finalPath("mobile2"),
+        mobile3: finalPath("mobile3"),
+        tablet: finalPath("tablet"),
+        desktop: finalPath("desktop"),
       };
+      const screenshotPaths: Partial<Record<ScreenshotRoleKey, string | null>> = { ...finalPaths };
 
-      for (const role of roles) {
-        if (form.screenshots[role] === null && !uploadedPaths[role]) {
-          finalPaths[role] = null;
-        }
+      if (
+        !finalPaths.hero &&
+        !form.removedScreenshotRoles.hero &&
+        form.existingScreenshots.hero
+      ) {
+        delete screenshotPaths.hero;
       }
 
       // 3. Create the record when this is a new project.
@@ -364,15 +425,13 @@ export function ProjectFormClient({ mode, initialData }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           project: buildPayload(),
-          screenshots: finalPaths,
+          screenshots: screenshotPaths,
           previous: form.existingScreenshotPaths,
         }),
       });
       const saveData = await saveRes.json();
 
       if (!saveRes.ok) {
-        // The write failed, so release only the objects this attempt created.
-        await releaseUploads(Object.values(uploadedPaths));
         throw new Error(saveData.error || "Could not save the project");
       }
 
@@ -395,22 +454,44 @@ export function ProjectFormClient({ mode, initialData }: Props) {
           ...f,
           existingScreenshotPaths: finalPaths,
           existingScreenshots: {
-            hero: finalPaths.hero ? publicUrlFor(finalPaths.hero) : null,
+            hero: finalPaths.hero
+              ? publicUrlFor(finalPaths.hero)
+              : form.removedScreenshotRoles.hero
+                ? null
+                : form.existingScreenshots.hero,
             mobile: finalPaths.mobile ? publicUrlFor(finalPaths.mobile) : null,
+            mobile2: finalPaths.mobile2 ? publicUrlFor(finalPaths.mobile2) : null,
+            mobile3: finalPaths.mobile3 ? publicUrlFor(finalPaths.mobile3) : null,
             tablet: finalPaths.tablet ? publicUrlFor(finalPaths.tablet) : null,
             desktop: finalPaths.desktop ? publicUrlFor(finalPaths.desktop) : null,
           },
           screenshotPreviews: {
             hero: null,
             mobile: null,
+            mobile2: null,
+            mobile3: null,
             tablet: null,
             desktop: null,
           },
-          screenshots: { hero: null, mobile: null, tablet: null, desktop: null },
+          screenshots: { hero: null, mobile: null, mobile2: null, mobile3: null, tablet: null, desktop: null },
+          removedScreenshotRoles: {
+            hero: false,
+            mobile: false,
+            mobile2: false,
+            mobile3: false,
+            tablet: false,
+            desktop: false,
+          },
         }));
       }
     } catch (err) {
-      setError((err as Error).message || "Something went wrong while saving.");
+      const message = (err as Error).message || "Something went wrong while saving.";
+      const cleanupFailures = await releaseUploads(Object.values(uploadedPaths));
+      setError(
+        cleanupFailures.length
+          ? `${message} Some uploaded files could not be removed: ${cleanupFailures.map((path) => path.split("/").pop()).join(", ")}`
+          : message
+      );
     } finally {
       setSaving(false);
     }
@@ -444,6 +525,8 @@ export function ProjectFormClient({ mode, initialData }: Props) {
     hero_subtitle: form.hero_subtitle.trim() || null,
     project_context: form.project_context.trim() || null,
     team_quote: form.team_quote.trim() || null,
+    seo_title: form.seo_title.trim() || null,
+    seo_desc: form.seo_desc.trim() || null,
     link_web: form.link_web.trim() || null,
     repo_link: form.repo_link.trim() || null,
     source: form.source.trim() || "personal",
@@ -452,6 +535,7 @@ export function ProjectFormClient({ mode, initialData }: Props) {
     challenge: form.challenge.body.trim() ? form.challenge : null,
     solution: form.solution.body.trim() ? form.solution : null,
     credits: form.credits.filter((c) => c.name.trim()),
+    screenshot_layout: form.screenshotLayout,
     updated_time: new Date().toISOString(),
   });
 
@@ -472,18 +556,25 @@ export function ProjectFormClient({ mode, initialData }: Props) {
    * Releases objects that were uploaded during a save attempt that then
    * failed. Only the paths from this attempt are touched.
    */
-  const releaseUploads = async (paths: string[]) => {
+  const releaseUploads = async (paths: string[]): Promise<string[]> => {
+    const failures: string[] = [];
+
     for (const path of paths) {
       if (!path) continue;
       try {
-        await fetch(
+        const response = await fetch(
           `/api/upload?path=${encodeURIComponent(path)}&projectName=${encodeURIComponent(form.name.trim())}`,
           { method: "DELETE" }
         );
+        if (!response.ok && response.status !== 409) {
+          failures.push(path);
+        }
       } catch {
-        // Nothing else to try; the leftover object is harmless.
+        failures.push(path);
       }
     }
+
+    return failures;
   };
 
   return (
@@ -493,7 +584,7 @@ export function ProjectFormClient({ mode, initialData }: Props) {
       <main className="mx-auto max-w-[1400px] px-4 md:px-6 lg:px-8 py-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/"
                 className="btn-ghost px-2.5 py-2 text-sm"
@@ -556,10 +647,12 @@ export function ProjectFormClient({ mode, initialData }: Props) {
           </div>
         )}
 
-        <div className={`grid gap-6 ${showPreview ? "lg:grid-cols-[1fr_1fr]" : "grid-cols-1"}`}>
-          <form id="project-form" onSubmit={handleSubmit} className="space-y-6" noValidate>
+        <div className={`grid min-w-0 gap-6 ${showPreview ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" : "grid-cols-1"}`}>
+          <form id="project-form" onSubmit={handleSubmit} className="min-w-0 space-y-6" noValidate>
+            <AIPromptButton onImport={applyProjectMetadata} />
+
             {/* Basic information */}
-            <section className="card space-y-5">
+            <section className="card space-y-5 p-4 sm:p-6">
               <h2 className="section-title">Basic information</h2>
 
               <Field
@@ -718,7 +811,7 @@ export function ProjectFormClient({ mode, initialData }: Props) {
             </section>
 
             {/* Technical information */}
-            <section className="card space-y-5">
+            <section className="card space-y-5 p-4 sm:p-6">
               <h2 className="section-title">Technical information</h2>
 
               <Field
@@ -784,7 +877,7 @@ export function ProjectFormClient({ mode, initialData }: Props) {
             </section>
 
             {/* Links */}
-            <section className="card space-y-5">
+            <section className="card space-y-5 p-4 sm:p-6">
               <h2 className="section-title">Links</h2>
 
               <Field
@@ -818,28 +911,112 @@ export function ProjectFormClient({ mode, initialData }: Props) {
               </Field>
             </section>
 
+            {/* Search metadata */}
+            <section className="card space-y-5 p-4 sm:p-6">
+              <h2 className="section-title">Search metadata</h2>
+              <Field
+                label="SEO title"
+                htmlFor="seo_title"
+                tooltip="Optional title used by search engines and social previews. Leave empty to use the project name."
+              >
+                <input
+                  id="seo_title"
+                  type="text"
+                  value={form.seo_title}
+                  onChange={(e) => update("seo_title", e.target.value)}
+                  className="input"
+                  placeholder="Project name"
+                />
+              </Field>
+              <Field
+                label="SEO description"
+                htmlFor="seo_desc"
+                tooltip="Optional search-result and social-preview description. Keep it concise, up to about 160 characters."
+              >
+                <textarea
+                  id="seo_desc"
+                  value={form.seo_desc}
+                  onChange={(e) => update("seo_desc", e.target.value)}
+                  className="textarea min-h-[80px]"
+                  placeholder="A concise description of the project."
+                />
+              </Field>
+            </section>
+
             {/* Screenshots */}
-            <section className="card space-y-5">
+            <section className="card space-y-5 p-4 sm:p-6">
               <h2 className="section-title">Screenshots</h2>
               <p className="text-sm text-text-muted -mt-1">
-                The four roles map to the hero image and the device showcase on the public
-                project page. Any of them can be left empty — the page simply omits that block.
+                Choose the screenshot roles that match this project. Optional screenshots can be left empty.
               </p>
+              <fieldset className="space-y-3">
+                <legend className="text-sm font-semibold text-text">Screenshot configuration</legend>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {([
+                    {
+                      value: "responsive",
+                      label: "Responsive / Multi-device",
+                      description: "Hero, mobile, tablet, and desktop screenshots.",
+                    },
+                    {
+                      value: "mobile_only",
+                      label: "Mobile-only",
+                      description: "A mobile hero with up to three additional mobile screenshots.",
+                    },
+                  ] as const).map((option) => (
+                    <label
+                      key={option.value}
+                      className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors ${
+                        form.screenshotLayout === option.value
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-white/[0.02] hover:border-border-strong"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="screenshot-layout"
+                        value={option.value}
+                        checked={form.screenshotLayout === option.value}
+                        onChange={() => update("screenshotLayout", option.value)}
+                        disabled={saving}
+                        className="mt-1 accent-primary"
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold text-text">{option.label}</span>
+                        <span className="mt-1 block text-xs text-text-dim">{option.description}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-text-dim">
+                  Switching configurations only changes which controls are shown. Existing screenshots stay saved and are not deleted.
+                </p>
+              </fieldset>
               <ScreenshotManager
                 files={form.screenshots}
                 previews={form.screenshotPreviews}
                 existingUrls={form.existingScreenshots}
+                existingPaths={form.existingScreenshotPaths}
+                layout={form.screenshotLayout}
                 onFileSelect={handleFileSelect}
                 onRemove={handleRemove}
                 disabled={saving}
               />
             </section>
 
-            <AIPromptButton />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="btn-secondary"
+              >
+                Kembali ke atas
+              </button>
+            </div>
           </form>
 
           {showPreview && (
-            <div className="lg:sticky lg:top-24 h-fit">
+            <div className="order-first h-fit min-w-0 max-h-[calc(100vh-7rem)] min-h-0 overflow-y-auto overscroll-contain lg:sticky lg:top-24 lg:order-none">
               <ProjectPreview project={previewProject} screenshots={previewImageUrls} />
             </div>
           )}

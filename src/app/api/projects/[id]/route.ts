@@ -1,7 +1,6 @@
 import { requireAuth } from "@/lib/auth";
 import {
   ProjectPayload,
-  VIEW_TYPE_BY_ROLE,
   isPathReferenced,
   publicUrlFor,
   setScreenshotRow,
@@ -12,13 +11,16 @@ interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-/** The four screenshot roles, in the order the form presents them. */
-const ROLES = ["hero", "mobile", "tablet", "desktop"] as const;
+/** The screenshot form roles; mobile variants share the database view type. */
+const ROLES = ["hero", "mobile", "mobile2", "mobile3", "tablet", "desktop"] as const;
+const GALLERY_ROLES = ["mobile", "mobile2", "mobile3", "tablet", "desktop"] as const;
 type Role = (typeof ROLES)[number];
 
 interface ScreenshotPaths {
   hero?: string | null;
   mobile?: string | null;
+  mobile2?: string | null;
+  mobile3?: string | null;
   tablet?: string | null;
   desktop?: string | null;
 }
@@ -76,6 +78,14 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     if (!projectInput || typeof projectInput !== "object") {
       return NextResponse.json({ error: "Missing project payload" }, { status: 400 });
     }
+    const screenshotLayout = projectInput.screenshot_layout;
+    if (
+      screenshotLayout !== undefined &&
+      screenshotLayout !== "responsive" &&
+      screenshotLayout !== "mobile_only"
+    ) {
+      return NextResponse.json({ error: "Invalid screenshot layout" }, { status: 400 });
+    }
 
     const payload: Record<string, unknown> = { ...projectInput };
 
@@ -105,19 +115,18 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     }
 
     // Gallery rows. The public project page reads these.
-    for (const role of ["mobile", "tablet", "desktop"] as const) {
+    for (const role of GALLERY_ROLES) {
       if (!(role in newPaths)) continue;
 
-      const viewType = VIEW_TYPE_BY_ROLE[role];
       const path = newPaths[role] || null;
 
       try {
         await setScreenshotRow(
           auth.client,
           id,
-          viewType,
+          role,
           path,
-          `${project.name} ${viewType} screenshot`
+          `${project.name} ${role.startsWith("mobile") ? "mobile" : role} screenshot`
         );
       } catch (err) {
         return NextResponse.json(

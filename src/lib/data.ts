@@ -1,17 +1,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Project, ProjectScreenshot } from "./types";
+import { Project, ProjectScreenshot, ScreenshotGalleryRole } from "./types";
 
 export const BUCKET = "portfolio-proyek";
 
 export const SORT_ORDER: Record<string, number> = {
   hero: -1,
   mobile: 0,
+  mobile2: 1,
+  mobile3: 2,
   tablet: 1,
   desktop: 3,
 };
 
-export const VIEW_TYPE_BY_ROLE: Record<string, ProjectScreenshot["view_type"]> = {
+export const VIEW_TYPE_BY_ROLE: Record<ScreenshotGalleryRole, ProjectScreenshot["view_type"]> = {
   mobile: "mobile",
+  mobile2: "mobile",
+  mobile3: "mobile",
   tablet: "tablet",
   desktop: "desktop",
 };
@@ -55,20 +59,27 @@ export async function isPathReferenced(
   client: SupabaseClient,
   path: string
 ): Promise<boolean> {
-  const { data: project } = await client
+  const { data: project, error: projectError } = await client
     .from("proyek_web")
     .select("id")
     .eq("foto_storage_path", path)
+    .limit(1)
     .maybeSingle();
 
+  if (projectError) {
+    throw new Error(`Could not check project references for ${path}: ${projectError.message}`);
+  }
   if (project) return true;
 
-  const { data: shots } = await client
+  const { data: shots, error: screenshotsError } = await client
     .from("project_screenshots")
     .select("id")
     .eq("image_path", path)
     .limit(1);
 
+  if (screenshotsError) {
+    throw new Error(`Could not check screenshot references for ${path}: ${screenshotsError.message}`);
+  }
   return Boolean(shots && shots.length > 0);
 }
 
@@ -118,16 +129,23 @@ export async function uploadObject(
 export async function setScreenshotRow(
   client: SupabaseClient,
   projectId: string,
-  viewType: ProjectScreenshot["view_type"],
+  role: ScreenshotGalleryRole,
   imagePath: string | null,
   altText: string
 ): Promise<void> {
-  const { data: existing } = await client
+  const viewType = VIEW_TYPE_BY_ROLE[role];
+  const sortOrder = SORT_ORDER[role];
+  const { data: existing, error: lookupError } = await client
     .from("project_screenshots")
     .select("id")
     .eq("project_id", projectId)
     .eq("view_type", viewType)
+    .eq("sort_order", sortOrder)
+    .limit(1)
     .maybeSingle();
+  if (lookupError) {
+    throw new Error(`Could not find the ${role} screenshot row: ${lookupError.message}`);
+  }
 
   if (!imagePath) {
     if (existing) {
@@ -145,7 +163,7 @@ export async function setScreenshotRow(
       .from("project_screenshots")
       .update({
         image_path: imagePath,
-        sort_order: SORT_ORDER[viewType] ?? 0,
+        sort_order: sortOrder,
         alt_text: altText,
       })
       .eq("id", existing.id);
@@ -157,7 +175,7 @@ export async function setScreenshotRow(
     project_id: projectId,
     image_path: imagePath,
     view_type: viewType,
-    sort_order: SORT_ORDER[viewType] ?? 0,
+    sort_order: sortOrder,
     alt_text: altText,
   });
   if (error) throw new Error(error.message);

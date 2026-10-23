@@ -33,7 +33,7 @@ Your task is to generate a JSON object that matches the exact schema below, usin
   "team_quote": "string (optional, testimonial/quote from team member, max ~320 chars)",
   "link_web": "string (live project URL, must be valid https://)",
   "repo_link": "string (GitHub/GitLab repository URL, must be valid https://)",
-  "source": "string (origin: 'personal', 'kolaborasi', 'freelance', 'coursework', etc.)",
+  "source": "string (origin: 'personal' or 'kolaborasi')",
   "frameworks": "string[] (technologies used, e.g., ['React', 'Next.js', 'Tailwind CSS', 'Supabase'])",
   "brief": {
     "body": "string (project overview: what it is, who it's for, core value proposition)",

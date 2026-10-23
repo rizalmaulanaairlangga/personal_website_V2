@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { SCREENSHOT_ROLES, ScreenshotRoleKey } from "@/lib/types";
+import {
+  SCREENSHOT_ROLES,
+  ScreenshotLayout,
+  ScreenshotRoleKey,
+} from "@/lib/types";
 
 interface ScreenshotManagerProps {
   files: Record<ScreenshotRoleKey, File | null>;
   previews: Record<ScreenshotRoleKey, string | null>;
   existingUrls: Record<ScreenshotRoleKey, string | null>;
+  existingPaths: Record<ScreenshotRoleKey, string | null>;
+  layout: ScreenshotLayout;
   onFileSelect: (role: ScreenshotRoleKey, file: File | null) => void;
   onRemove: (role: ScreenshotRoleKey) => void;
   disabled?: boolean;
@@ -19,6 +25,8 @@ export function ScreenshotManager({
   files,
   previews,
   existingUrls,
+  existingPaths,
+  layout,
   onFileSelect,
   onRemove,
   disabled,
@@ -70,17 +78,34 @@ export function ScreenshotManager({
       setErrors((e) => ({ ...e, [role]: problem }));
       return;
     }
+    if (
+      existingUrls[role] &&
+      !window.confirm(
+        `Replace the saved ${role} screenshot? The old Storage object will remain until the new image is saved successfully.`
+      )
+    ) {
+      return;
+    }
     setErrors((e) => ({ ...e, [role]: undefined }));
     onFileSelect(role, file);
   };
 
+  const visibleRoles = SCREENSHOT_ROLES.filter((role) =>
+    layout === "mobile_only"
+      ? ["hero", "mobile", "mobile2", "mobile3"].includes(role.key)
+      : !["mobile2", "mobile3"].includes(role.key)
+  );
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {SCREENSHOT_ROLES.map((role) => {
+      {visibleRoles.map((role) => {
         const preview = previews[role.key];
         const existing = existingUrls[role.key];
+        const existingPath = existingPaths[role.key];
         const file = files[role.key];
         const size = dims[role.key];
+        const label = layout === "mobile_only" ? role.mobileLabel : role.label;
+        const filename = file?.name || existingPath?.split("/").pop();
 
         return (
           <div
@@ -99,12 +124,14 @@ export function ScreenshotManager({
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-text">{role.label}</p>
+                <p className="text-sm font-semibold text-text">{label}</p>
                 <p className="text-xs text-text-dim mt-0.5">
-                  {role.key === "hero" ? "Required for the hero image" : "Optional"}
+                  {layout === "mobile_only" && role.key === "hero" ? "Required primary mobile screenshot shown in the project hero." : role.description}
                 </p>
               </div>
-              <span className="badge shrink-0">{role.key === "hero" ? "Hero" : "Gallery"}</span>
+              <span className="badge shrink-0">
+                {layout === "mobile_only" && role.key === "hero" ? "Required" : role.key === "hero" ? "Hero" : role.key.startsWith("mobile") ? "Mobile gallery" : "Gallery"}
+              </span>
             </div>
 
             <div
@@ -112,14 +139,27 @@ export function ScreenshotManager({
                 dragRole === role.key
                   ? "border-primary bg-primary/10"
                   : "border-border bg-black/30"
-              }`}
+              } ${disabled ? "cursor-not-allowed" : "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"}`}
+              role="button"
+              tabIndex={disabled ? -1 : 0}
+              aria-label={`Choose ${label.toLowerCase()} image`}
+              aria-disabled={disabled}
+              onClick={() => {
+                if (!disabled) inputRefs.current[role.key]?.click();
+              }}
+              onKeyDown={(e) => {
+                if (!disabled && (e.key === "Enter" || e.key === " ")) {
+                  e.preventDefault();
+                  inputRefs.current[role.key]?.click();
+                }
+              }}
             >
               {preview || existing ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={preview || existing || ""}
-                    alt={`${role.label} preview`}
+                    alt={`${label} preview`}
                     className="absolute inset-0 w-full h-full object-contain"
                   />
                   {preview && (
@@ -148,6 +188,13 @@ export function ScreenshotManager({
                 </span>
               </div>
             )}
+            {!file && existingPath && (
+              <div className="flex items-center justify-between gap-2 text-xs text-text-muted">
+                <span className="truncate" title={existingPath}>{filename}</span>
+                <span className="shrink-0 text-success">Saved in Storage</span>
+              </div>
+            )}
+            {file && <p className="text-xs text-primary">Ready to upload when you save.</p>}
 
             {size && (
               <p className="text-xs text-text-dim">
@@ -171,7 +218,16 @@ export function ScreenshotManager({
               {(preview || existing) && (
                 <button
                   type="button"
-                  onClick={() => onRemove(role.key)}
+                  onClick={() => {
+                    if (
+                      !existing ||
+                      window.confirm(
+                        `Remove the saved ${label} from this project? The Storage object is not removed until the project saves.`
+                      )
+                    ) {
+                      onRemove(role.key);
+                    }
+                  }}
                   disabled={disabled}
                   className="btn-ghost px-3 py-2 text-xs text-danger hover:bg-danger/10"
                 >

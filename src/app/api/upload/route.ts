@@ -1,8 +1,9 @@
 import { requireAuth } from "@/lib/auth";
-import { buildStoragePath, uploadObject, BUCKET } from "@/lib/data";
+import { buildStoragePath, uploadObject, BUCKET, isPathReferenced } from "@/lib/data";
 import { NextRequest, NextResponse } from "next/server";
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+const ALLOWED_ROLES = new Set(["hero", "mobile", "mobile2", "mobile3", "tablet", "desktop"]);
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: NextRequest) {
@@ -22,6 +23,9 @@ export async function POST(request: NextRequest) {
     }
     if (!projectName || !role) {
       return NextResponse.json({ error: "Missing projectName or role" }, { status: 400 });
+    }
+    if (!ALLOWED_ROLES.has(role)) {
+      return NextResponse.json({ error: "Invalid screenshot role" }, { status: 400 });
     }
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
@@ -129,6 +133,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: "Path does not belong to this project" },
         { status: 400 }
+      );
+    }
+    if (await isPathReferenced(auth.client, path)) {
+      return NextResponse.json(
+        { error: "This object is still referenced by a project and cannot be removed as an unsaved upload." },
+        { status: 409 }
       );
     }
 

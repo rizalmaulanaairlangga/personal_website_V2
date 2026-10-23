@@ -153,6 +153,8 @@ status, payload = api("/api/projects/" + PROJECT_ID, "PATCH", {
         "hero_subtitle": "Checking the pipeline end to end",
         "project_context": "Automated verification",
         "team_quote": "A short closing statement for the check.",
+        "seo_title": "CMS Verification SEO title",
+        "seo_desc": "CMS verification SEO description.",
         "link_web": "https://example.com",
         "repo_link": "https://github.com/example/example",
         "source": "personal",
@@ -170,6 +172,7 @@ check("project is updated", status == 200 and updated.get("project", {}).get("pr
 check("frameworks round-trip", updated.get("project", {}).get("frameworks") == ["Next.js", "TypeScript", "Supabase"], str(updated.get("project", {}).get("frameworks")))
 check("credits round-trip", updated.get("project", {}).get("credits") == [{"name": "Rizal Maulana Airlangga", "role": "Frontend"}], str(updated.get("project", {}).get("credits")))
 check("brief JSON round-trip", (updated.get("project", {}).get("brief") or {}).get("body") == "Overview body.", str(updated.get("project", {}).get("brief")))
+check("SEO metadata round-trip", updated.get("project", {}).get("seo_title") == "CMS Verification SEO title" and updated.get("project", {}).get("seo_desc") == "CMS verification SEO description.")
 
 # The portfolio reads this row through its own query.
 supa_url = re.search(r"NEXT_PUBLIC_SUPABASE_URL=(\S+)", open(os.environ.get("CMS_ENV_FILE", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env.local")), encoding="utf-8").read()).group(1)
@@ -220,6 +223,12 @@ check("uploaded path follows the bucket convention", bool(hero_path) and hero_pa
 status, payload = upload("mobile", img, "phone.png")
 mobile_path = json.loads(payload).get("path") if status == 200 else None
 check("mobile image uploads", status == 200 and bool(mobile_path), "status=" + str(status) + " " + payload[:120])
+status, payload = upload("mobile2", img, "phone-feature-2.png")
+mobile2_path = json.loads(payload).get("path") if status == 200 else None
+check("second mobile image uploads", status == 200 and bool(mobile2_path), "status=" + str(status) + " " + payload[:120])
+status, payload = upload("mobile3", img, "phone-feature-3.png")
+mobile3_path = json.loads(payload).get("path") if status == 200 else None
+check("third mobile image uploads", status == 200 and bool(mobile3_path), "status=" + str(status) + " " + payload[:120])
 
 # --- 8. Save with the uploaded images ----------------------------------------
 status, payload = api("/api/projects/" + PROJECT_ID, "PATCH", {
@@ -227,12 +236,30 @@ status, payload = api("/api/projects/" + PROJECT_ID, "PATCH", {
         "name": "CMS Verification Project",
         "slug": SLUG,
         "source": "personal",
+        "screenshot_layout": "mobile_only",
     },
-    "screenshots": {"hero": hero_path, "mobile": mobile_path, "tablet": None, "desktop": None},
-    "previous": {"hero": None, "mobile": None, "tablet": None, "desktop": None},
+    "screenshots": {
+        "hero": hero_path,
+        "mobile": mobile_path,
+        "mobile2": mobile2_path,
+        "mobile3": mobile3_path,
+        "tablet": None,
+        "desktop": None,
+    },
+    "previous": {
+        "hero": None,
+        "mobile": None,
+        "mobile2": None,
+        "mobile3": None,
+        "tablet": None,
+        "desktop": None,
+    },
 })
 saved = json.loads(payload) if status == 200 else {}
 check("save with screenshots succeeds", status == 200, "status=" + str(status) + " " + payload[:140])
+check("selected screenshot layout is persisted",
+      saved.get("project", {}).get("screenshot_layout") == "mobile_only",
+      str(saved.get("project", {}).get("screenshot_layout")))
 check("hero url is derived from the storage path", (saved.get("project", {}).get("foto_public_url") or "").endswith(hero_path.replace(" ", "%20")), str(saved.get("project", {}).get("foto_public_url"))[:150])
 check("hero storage path is stored", saved.get("project", {}).get("foto_storage_path") == hero_path)
 check("hero file name is stored", saved.get("project", {}).get("foto_file_name") == hero_path.split("/")[-1], str(saved.get("project", {}).get("foto_file_name")))
@@ -243,12 +270,49 @@ req = urllib.request.Request(
     headers={"apikey": anon, "Authorization": "Bearer " + anon},
 )
 shots = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
-check("a project_screenshots row was written for mobile", len(shots) == 1 and shots[0]["view_type"] == "mobile" and shots[0]["image_path"] == mobile_path, str(shots)[:160])
-check("sort_order matches the public renderer's expectation", len(shots) == 1 and shots[0]["sort_order"] == 0, str(shots)[:160])
+shots.sort(key=lambda row: row["sort_order"])
+check("three mobile screenshots are stored as mobile rows",
+      len(shots) == 3 and all(row["view_type"] == "mobile" for row in shots),
+      str(shots)[:220])
+check("mobile rows preserve screenshot order",
+      [row["sort_order"] for row in shots] == [0, 1, 2] and
+      [row["image_path"] for row in shots] == [mobile_path, mobile2_path, mobile3_path],
+      str(shots)[:220])
 
 # --- 9. Verify the objects really exist ---------------------------------------
-status, payload = api("/api/upload", "PUT", {"paths": [hero_path, mobile_path]})
+status, payload = api("/api/upload", "PUT", {"paths": [hero_path, mobile_path, mobile2_path, mobile3_path]})
 check("uploaded objects are confirmed in Storage", status == 200 and json.loads(payload).get("verified") is True, "status=" + str(status) + " " + payload[:120])
+
+# Switching only the layout metadata must not remove screenshot rows.
+status, payload = api("/api/projects/" + PROJECT_ID, "PATCH", {
+    "project": {
+        "name": "CMS Verification Project",
+        "slug": SLUG,
+        "source": "personal",
+        "screenshot_layout": "responsive",
+    },
+})
+check("layout can switch without screenshot payloads", status == 200, "status=" + str(status) + " " + payload[:120])
+req = urllib.request.Request(
+    supa_url + "/rest/v1/project_screenshots?select=image_path,view_type,sort_order&project_id=eq." + PROJECT_ID,
+    headers={"apikey": anon, "Authorization": "Bearer " + anon},
+)
+shots_after_layout_switch = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
+check(
+    "layout switch preserves all existing screenshot metadata",
+    len(shots_after_layout_switch) == 3 and
+    {row["image_path"] for row in shots_after_layout_switch} == {mobile_path, mobile2_path, mobile3_path},
+    str(shots_after_layout_switch)[:220],
+)
+status, payload = api("/api/projects/" + PROJECT_ID, "PATCH", {
+    "project": {
+        "name": "CMS Verification Project",
+        "slug": SLUG,
+        "source": "personal",
+        "screenshot_layout": "mobile_only",
+    },
+})
+check("layout can switch back without changing screenshot rows", status == 200, "status=" + str(status) + " " + payload[:120])
 
 public = supa_url + "/storage/v1/object/public/portfolio-proyek/" + hero_path.replace(" ", "%20")
 try:
@@ -265,9 +329,9 @@ mobile2 = json.loads(payload).get("path") if status == 200 else None
 check("replacement upload gets a new path", status == 200 and mobile2 and mobile2 != mobile_path, "new=" + str(mobile2) + " old=" + str(mobile_path))
 
 status, payload = api("/api/projects/" + PROJECT_ID, "PATCH", {
-    "project": {"name": "CMS Verification Project", "slug": SLUG, "source": "personal"},
-    "screenshots": {"hero": hero_path, "mobile": mobile2, "tablet": None, "desktop": None},
-    "previous": {"hero": None, "mobile": mobile_path, "tablet": None, "desktop": None},
+    "project": {"name": "CMS Verification Project", "slug": SLUG, "source": "personal", "screenshot_layout": "mobile_only"},
+    "screenshots": {"hero": hero_path, "mobile": mobile2, "mobile2": mobile2_path, "mobile3": mobile3_path, "tablet": None, "desktop": None},
+    "previous": {"hero": None, "mobile": mobile_path, "mobile2": None, "mobile3": None, "tablet": None, "desktop": None},
 })
 repl = json.loads(payload) if status == 200 else {}
 check("replacement is saved", status == 200, "status=" + str(status) + " " + payload[:140])
@@ -298,21 +362,27 @@ check("a control object is still present in the bucket", bucket_state("SoulStory
 check("the replacement object is in the bucket", bucket_state(mobile2) == "present", bucket_state(mobile2))
 
 req = urllib.request.Request(
-    supa_url + "/rest/v1/project_screenshots?select=image_path,view_type&project_id=eq." + PROJECT_ID,
+    supa_url + "/rest/v1/project_screenshots?select=image_path,view_type,sort_order&project_id=eq." + PROJECT_ID,
     headers={"apikey": anon, "Authorization": "Bearer " + anon},
 )
 shots = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
-check("the gallery row points at the new object", len(shots) == 1 and shots[0]["image_path"] == mobile2, str(shots)[:160])
+shots.sort(key=lambda row: row["sort_order"])
+check("replacement updates only the first mobile gallery row",
+      len(shots) == 3 and shots[0]["image_path"] == mobile2 and
+      shots[1]["image_path"] == mobile2_path and shots[2]["image_path"] == mobile3_path,
+      str(shots)[:220])
 
 # --- 11. Remove an image ------------------------------------------------------
 status, payload = api("/api/projects/" + PROJECT_ID, "PATCH", {
     "project": {"name": "CMS Verification Project", "slug": SLUG, "source": "personal"},
-    "screenshots": {"hero": hero_path, "mobile": None, "tablet": None, "desktop": None},
-    "previous": {"hero": None, "mobile": mobile2, "tablet": None, "desktop": None},
+    "screenshots": {"hero": hero_path, "mobile": None, "mobile2": None, "mobile3": None, "tablet": None, "desktop": None},
+    "previous": {"hero": None, "mobile": mobile2, "mobile2": mobile2_path, "mobile3": mobile3_path, "tablet": None, "desktop": None},
 })
 rm = json.loads(payload) if status == 200 else {}
 check("removing an image saves", status == 200, "status=" + str(status) + " " + payload[:140])
-check("the removed object is released", mobile2 in (rm.get("cleaned") or []), "cleaned=" + str(rm.get("cleaned")))
+check("all removed mobile objects are released",
+      all(path in (rm.get("cleaned") or []) for path in (mobile2, mobile2_path, mobile3_path)),
+      "cleaned=" + str(rm.get("cleaned")))
 
 req = urllib.request.Request(
     supa_url + "/rest/v1/project_screenshots?select=image_path&project_id=eq." + PROJECT_ID,
