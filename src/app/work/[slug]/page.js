@@ -6,6 +6,8 @@ import BackLink from "./BackLink";
 import CtaButton from "./CtaButton";
 import MoreProjects from "./MoreProjects";
 import ScreenshotGallery from "./ScreenshotGallery";
+import MobileHeroDevice from "./MobileHeroDevice";
+import { resolveScreenshotLayout } from "./screenshot-layout.mjs";
 
 export const revalidate = 60;
 
@@ -25,6 +27,16 @@ export default async function WorkDetail({ params }) {
   const supa = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const { data: project } = await supa.from("proyek_web").select("*").eq("slug", params.slug).single();
   if (!project) notFound();
+  const { data: screenshots, error: screenshotsError } = await supa
+    .from("project_screenshots")
+    .select("image_path,view_type,sort_order,alt_text")
+    .eq("project_id", project.id)
+    .order("sort_order");
+  if (screenshotsError) {
+    throw new Error(`Could not load project screenshots: ${screenshotsError.message}`);
+  }
+  const screenshotRows = screenshots || [];
+  const screenshotLayout = resolveScreenshotLayout(project.screenshot_layout);
 
   const brief = project.brief || {};
   const challenge = project.challenge || {};
@@ -121,15 +133,22 @@ export default async function WorkDetail({ params }) {
       </section>
       <section className="bg-[#0A0404] pb-8 lg:pb-10">
         <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
-          <div className="relative overflow-hidden rounded-[16px] bg-[#111010] border border-white/[0.10] aspect-[16/10] lg:aspect-[16/8]">
-            {project.foto_public_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={project.foto_public_url} alt={project.name} className="absolute inset-0 w-full h-full object-cover" />
-            ) : (
-              <div className="absolute inset-0 bg-[#1A1A1A]" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
-          </div>
+          {screenshotLayout === "mobile_only" && project.foto_public_url ? (
+            <MobileHeroDevice
+              src={project.foto_public_url}
+              alt={`${project.name} mobile application`}
+            />
+          ) : (
+            <div className="relative aspect-[16/10] overflow-hidden rounded-[16px] border border-white/[0.10] bg-[#111010] lg:aspect-[16/8]">
+              {project.foto_public_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={project.foto_public_url} alt={project.name} className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 bg-[#1A1A1A]" />
+              )}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+            </div>
+          )}
         </div>
       </section>
       <section className="bg-[#0A0404] border-y border-white/[0.08] py-10 lg:py-16">
@@ -189,7 +208,12 @@ export default async function WorkDetail({ params }) {
           </div>
         </div>
       </section>
-      <ScreenshotGallery projectId={project.id} projectName={project.name} />
+      <ScreenshotGallery
+        projectId={project.id}
+        projectName={project.name}
+        rows={screenshotRows}
+        layout={screenshotLayout}
+      />
       {(project.repo_link || project.link_web) ? (
         <section className="bg-[#0A0404] pb-10 lg:pb-14">
           <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">

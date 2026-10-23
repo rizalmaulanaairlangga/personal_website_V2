@@ -13,6 +13,13 @@ Project Supabase: **portofolio-rizal** (`awirklcfkguisnfkxary`) — `ap-southeas
 - `proyek_web` — 4 rows (merge `Proyek_Web` 2 + `Proyek_Web_Kolaborasi` 2, kolom `source` = `kolaborasi`/`personal`)
 - ❌ `Proyek_Logika` diabaikan sesuai instruksi
 
+The project detail pages and portfolio CMS also use
+`proyek_web.screenshot_layout` (`responsive` or `mobile_only`) to choose the
+gallery presentation. The additive migration is
+`supabase/migrations/20261022033231_add_project_screenshot_layout.sql`.
+Additional mobile screenshots are stored in `project_screenshots` as
+`view_type = 'mobile'` rows with `sort_order` values `0` through `2`.
+
 Semua tabel RLS `public read` (anon `SELECT` true), write via `service_role`.
 
 ## Storage: 3 Bucket Public

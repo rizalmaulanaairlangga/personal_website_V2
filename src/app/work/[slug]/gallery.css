@@ -44,6 +44,14 @@
   opacity: 1;
 }
 
+.device-row--mobile-only {
+  --phone-w: clamp(190px, 19vw, 300px);
+  --gap: clamp(0.25rem, 1.5vw, 1.25rem);
+  max-width: 1240px;
+  margin: 0 auto;
+  opacity: 1;
+}
+
 .device {
   position: relative;
   flex: 0 0 auto;
@@ -85,6 +93,38 @@
     translateY(var(--tablet-y-init));
 }
 
+.mobile-only-phone {
+  transform-origin: center bottom;
+  transition: transform 3.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-only-phone--left {
+  z-index: 1;
+  transform: rotate(-3deg) translateX(12px) translateY(3px) scale(0.94);
+}
+
+.mobile-only-phone--center {
+  z-index: 2;
+  transform: rotate(0) translateY(0) scale(1.06);
+}
+
+.mobile-only-phone--right {
+  z-index: 1;
+  transform: rotate(3deg) translateX(-12px) translateY(3px) scale(0.94);
+}
+
+.device-row.is-visible .mobile-only-phone--left {
+  transform: rotate(-9deg) translateX(-22px) translateY(8px) scale(0.92);
+}
+
+.device-row.is-visible .mobile-only-phone--center {
+  transform: rotate(0) translateY(-4px) scale(1.08);
+}
+
+.device-row.is-visible .mobile-only-phone--right {
+  transform: rotate(9deg) translateX(22px) translateY(8px) scale(0.92);
+}
+
 .device-notch {
   position: absolute;
   top: 6px;
@@ -122,6 +162,11 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.device-img--mobile {
+  object-fit: contain;
+  background: #050608;
 }
 
 .desktop-showcase {
@@ -179,6 +224,19 @@
     --phone-x-final: -80px;
     --tablet-x-final: 80px;
   }
+
+  .device-row--mobile-only {
+    --phone-w: clamp(160px, 25vw, 240px);
+    --gap: clamp(0.25rem, 1vw, 0.75rem);
+  }
+
+  .device-row.is-visible .mobile-only-phone--left {
+    transform: rotate(-6deg) translateX(-8px) translateY(5px) scale(0.94);
+  }
+
+  .device-row.is-visible .mobile-only-phone--right {
+    transform: rotate(6deg) translateX(8px) translateY(5px) scale(0.94);
+  }
 }
 
 @media (max-width: 767px) {
@@ -206,6 +264,34 @@
     --tablet-x-final: 0;
   }
 
+  .device-row--mobile-only {
+    --phone-w: clamp(76px, 25vw, 122px);
+    --gap: clamp(0.15rem, 1vw, 0.5rem);
+    flex-direction: row;
+    gap: var(--gap);
+    padding: 0;
+  }
+
+  .mobile-only-phone--left {
+    transform: rotate(-3deg) translateX(4px) scale(0.94);
+  }
+
+  .mobile-only-phone--right {
+    transform: rotate(3deg) translateX(-4px) scale(0.94);
+  }
+
+  .device-row.is-visible .mobile-only-phone--left {
+    transform: rotate(-7deg) translateX(-4px) scale(0.92);
+  }
+
+  .device-row.is-visible .mobile-only-phone--center {
+    transform: scale(1.06);
+  }
+
+  .device-row.is-visible .mobile-only-phone--right {
+    transform: rotate(7deg) translateX(4px) scale(0.92);
+  }
+
   .desktop-showcase {
     margin-top: 2rem;
   }
@@ -215,6 +301,7 @@
   .device-row,
   .device--phone,
   .device--tablet,
+  .mobile-only-phone,
   .desktop-showcase {
     transition: none !important;
   }
@@ -223,12 +310,19 @@
     opacity: 1;
   }
 
-  .device--phone {
+  .device--phone,
+  .mobile-only-phone--left,
+  .mobile-only-phone--right {
     transform: rotate(-5deg) translateX(-12px) translateY(4px);
   }
 
-  .device--tablet {
+  .device--tablet,
+  .mobile-only-phone--right {
     transform: rotate(5deg) translateX(12px) translateY(4px);
+  }
+
+  .mobile-only-phone--center {
+    transform: none;
   }
 
   .desktop-showcase {
