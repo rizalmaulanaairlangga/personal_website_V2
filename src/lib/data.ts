@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Project, ProjectScreenshot, ScreenshotGalleryRole } from "./types";
 
 export const BUCKET = "portfolio-proyek";
+export const TOOLS_BUCKET = "portfolio-tools";
 
 export const SORT_ORDER: Record<string, number> = {
   hero: -1,
@@ -48,8 +49,8 @@ export function buildStoragePath(
   return { path: `${projectName}/Foto/${fileName}`, fileName };
 }
 
-export const publicUrlFor = (path: string) =>
-  `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path
+export const publicUrlFor = (path: string, bucket = BUCKET) =>
+  `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${path
     .split("/")
     .map(encodeURIComponent)
     .join("/")}`;
@@ -107,22 +108,21 @@ export async function removeIfUnreferenced(
 export async function uploadObject(
   client: SupabaseClient,
   path: string,
-  file: File
+  bytes: Uint8Array,
+  options: { bucket?: string; contentType: string }
 ): Promise<{ path: string; publicUrl: string }> {
-  const buffer = await file.arrayBuffer();
+  const bucket = options.bucket || BUCKET;
 
-  const { error } = await client.storage
-    .from(BUCKET)
-    .upload(path, new Uint8Array(buffer), {
-      contentType: file.type,
-      upsert: false,
-    });
+  const { error } = await client.storage.from(bucket).upload(path, bytes, {
+    contentType: options.contentType,
+    upsert: false,
+  });
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return { path, publicUrl: publicUrlFor(path) };
+  return { path, publicUrl: publicUrlFor(path, bucket) };
 }
 
 /** Replaces the screenshot row for one role, or removes it when the role is empty. */

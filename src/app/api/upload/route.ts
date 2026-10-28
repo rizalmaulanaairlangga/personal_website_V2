@@ -1,10 +1,16 @@
 import { requireAuth } from "@/lib/auth";
 import { buildStoragePath, uploadObject, BUCKET, isPathReferenced } from "@/lib/data";
+import {
+  compressCmsImage,
+  InvalidCmsImageError,
+  MAX_CMS_IMAGE_BYTES,
+  CMS_IMAGE_TYPES,
+} from "@/lib/image-processing";
 import { NextRequest, NextResponse } from "next/server";
 
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const ALLOWED_ROLES = new Set(["hero", "mobile", "mobile2", "mobile3", "tablet", "desktop"]);
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   const auth = await requireAuth();
@@ -14,46 +20,52 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData();
-    const file = formData.get("file") as File;
+    const fileValue = formData.get("file");
     const projectName = formData.get("projectName") as string;
     const role = formData.get("role") as string;
 
-    if (!file) {
+    if (!(fileValue instanceof File) || fileValue.size === 0) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
+    const file = fileValue;
     if (!projectName || !role) {
       return NextResponse.json({ error: "Missing projectName or role" }, { status: 400 });
     }
     if (!ALLOWED_ROLES.has(role)) {
       return NextResponse.json({ error: "Invalid screenshot role" }, { status: 400 });
     }
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    if (!CMS_IMAGE_TYPES.has(file.type)) {
       return NextResponse.json(
         { error: "Invalid file type. Use PNG, JPEG, WebP, or GIF." },
         { status: 400 }
       );
     }
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size > MAX_CMS_IMAGE_BYTES) {
       return NextResponse.json({ error: "File too large. Maximum size is 10 MB." }, { status: 400 });
     }
 
     // A fresh name every time, so the object the database still points at is
     // never overwritten while the form is being edited.
-    const { path, fileName } = buildStoragePath(projectName, role, file.name);
-    const { publicUrl } = await uploadObject(auth.client, path, file);
+    const compressed = await compressCmsImage(file);
+    const { path, fileName } = buildStoragePath(projectName, role, compressed.fileName);
+    const { publicUrl } = await uploadObject(auth.client, path, compressed.bytes, {
+      bucket: BUCKET,
+      contentType: compressed.mimeType,
+    });
 
     return NextResponse.json({
       path,
       publicUrl,
       fileName,
       bucket: BUCKET,
-      size: file.size,
-      type: file.type,
+      size: compressed.size,
+      originalSize: compressed.originalSize,
+      type: compressed.mimeType,
     });
   } catch (err) {
     return NextResponse.json(
       { error: (err as Error).message || "Upload failed" },
-      { status: 500 }
+      { status: err instanceof InvalidCmsImageError ? 400 : 500 }
     );
   }
 }

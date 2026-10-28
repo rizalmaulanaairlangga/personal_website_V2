@@ -28,6 +28,16 @@ export interface Project {
   screenshot_layout: ScreenshotLayout | null;
 }
 
+export interface PortfolioTool {
+  tool_id: number;
+  name: string;
+  short_desc: string | null;
+  category: string | null;
+  logo_file_name: string | null;
+  logo_storage_path: string | null;
+  logo_public_url: string | null;
+}
+
 export type ScreenshotLayout = "responsive" | "mobile_only";
 
 export interface ProjectSection {

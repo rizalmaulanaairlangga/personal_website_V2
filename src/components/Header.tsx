@@ -27,7 +27,16 @@ export function Header({ user }: HeaderProps) {
             <span className="hidden sm:block">Portfolio CMS</span>
           </Link>
 
-          <div className="flex items-center gap-3 ml-auto">
+          <nav aria-label="Main navigation" className="ml-auto flex items-center gap-1">
+            <Link href="/" className="btn-ghost px-3 py-2 text-sm">
+              Projects
+            </Link>
+            <Link href="/tools" className="btn-ghost px-3 py-2 text-sm">
+              Tools
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-3">
             <span className="hidden md:block text-sm text-text-dim">{user?.email}</span>
             <button
               onClick={handleSignOut}
