@@ -21,6 +21,18 @@ interface ScreenshotManagerProps {
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const MAX_BYTES = 10 * 1024 * 1024;
 
+/** Recommended screenshot dimensions per role & layout */
+function getRecommendedSize(roleKey: string, layout: ScreenshotLayout): string {
+  if (roleKey.startsWith("mobile") || (layout === "mobile_only" && roleKey === "hero")) {
+    return "Mobile: 393 × 873";
+  }
+  if (roleKey === "tablet") {
+    return "Tablet: 1180 × 820";
+  }
+  // hero (responsive) and desktop
+  return "Laptop: 1920 × 1080 · Alt: 1440 × 900";
+}
+
 export function ScreenshotManager({
   files,
   previews,
@@ -127,6 +139,9 @@ export function ScreenshotManager({
                 <p className="text-sm font-semibold text-text">{label}</p>
                 <p className="text-xs text-text-dim mt-0.5">
                   {layout === "mobile_only" && role.key === "hero" ? "Required primary mobile screenshot shown in the project hero." : role.description}
+                </p>
+                <p className="text-[11px] text-primary/70 mt-1 font-medium">
+                  {getRecommendedSize(role.key, layout)}
                 </p>
               </div>
               <span className="badge shrink-0">
