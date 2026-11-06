@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 
+import Reveal from "@/components/Reveal";
+import "@/components/reveal.css";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -120,7 +122,7 @@ export default function Home() {
      still across real time rather than a few animation frames. */
   useEffect(() => {
     if (showIntro) return;
-    const SECTION_IDS = ["projects", "about", "tools", "services", "process", "contact"];
+    const SECTION_IDS = ["projects", "about", "tools", "services", "how-i-work", "contact"];
     let id = "";
     try { id = sessionStorage.getItem("landing-target") || ""; } catch {}
     if (!id || !SECTION_IDS.includes(id)) return;
@@ -345,28 +347,17 @@ export default function Home() {
       <LatestProject />
 
       {}
-      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
-
-      {}
       <WhoAmI />
-
-      {}
-      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
 
       {}
       <ToolsMarquee />
 
       {}
-      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
-
-      {}
       <WhatCanIDo />
-
-      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
 
       <WorkProcess />
 
-      <div className="h-4 lg:h-6 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
+      <div className="h-16 lg:h-24 xl:h-32 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
 
       </div>
 
@@ -791,16 +782,18 @@ function ProjectYearBar() {
 
 function WhoAmI() {
   return (
-    <section id="about" className="relative bg-[#0a0404] py-10 lg:py-20 overflow-hidden isolate [transform:translateZ(0)] scroll-mt-[88px] md:scroll-mt-[104px]">      {}
+    <section id="about" className="relative bg-[#0a0404] pt-[96px] lg:pt-[176px] pb-16 lg:pb-[144px] overflow-hidden isolate [transform:translateZ(0)] scroll-mt-[88px] md:scroll-mt-[104px]">      {}
       <div className="absolute top-0 inset-x-0 h-px bg-white/[0.06]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.04),transparent_60%)]" />
       <div className="relative mx-auto max-w-[1160px] px-[3.2%] md:px-[1.6%] lg:px-[14px]">
         {}
-        <p className="text-center text-[14px] lg:text-[15px] font-medium tracking-[0.16em] text-[#F0F3FF]/82 uppercase">
-          Who Am I
-        </p>
-        {}
-        <h2 className="mt-3 text-center text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[88px] font-semibold tracking-[-0.04em] leading-[0.95] text-white">
+        <Reveal as="p" variant="fade" className="flex items-center justify-center gap-2 text-center text-[14px] lg:text-[15px] font-medium tracking-[0.16em] text-[#F0F3FF]/82 uppercase">
+          <svg data-section-icon="triangle" aria-hidden="true" viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-[#7AB8E8] drop-shadow-[0_0_8px_rgba(122,184,232,0.65)]">
+            <path d="M12 2 22 21H2L12 2Z" />
+          </svg>
+          Who Am I?
+        </Reveal>
+        <Reveal as="h2" variant="up" delay={120} className="mt-3 text-center text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[88px] font-semibold tracking-[-0.04em] leading-[0.95] text-white">
           <span className="inline-flex items-baseline justify-center flex-wrap gap-x-[0.08em]">
             <span>The</span>
             <span
@@ -813,51 +806,54 @@ function WhoAmI() {
           </span>
           <br />
           <span className="block">all this code</span>
-        </h2>
+        </Reveal>
 
         {}
         <div className="mt-10 lg:mt-14 grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] gap-4 lg:gap-5 items-stretch">
           {}
-          <div className="relative rounded-[20px] lg:rounded-[24px] overflow-hidden bg-[#111010] border border-white/[0.08] shadow-[0_16px_48px_rgba(0,0,0,0.5)] min-h-[380px] lg:min-h-[520px] flex">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/potret-mahasiswa-kampus.png"
-              alt="Rizal Maulana Airlangga at a campus event"
-              className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
-              loading="lazy"
-              decoding="async"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
-            <div className="pointer-events-none absolute inset-0 rounded-[20px] lg:rounded-[24px] border border-white/[0.06] mix-blend-overlay" />
-          </div>
+          <Reveal variant="up" delay={160} className="min-h-[380px] lg:min-h-[520px]">
+            <div className="relative h-full rounded-[20px] lg:rounded-[24px] overflow-hidden bg-[#111010] border border-white/[0.08] shadow-[0_16px_48px_rgba(0,0,0,0.5)] min-h-[380px] lg:min-h-[520px] flex">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/potret-mahasiswa-kampus.png"
+                alt="Rizal Maulana Airlangga at a campus event"
+                className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 rounded-[20px] lg:rounded-[24px] border border-white/[0.06] mix-blend-overlay" />
+            </div>
+          </Reveal>
 
           {}
-          <div className="relative rounded-[20px] lg:rounded-[24px] bg-white/[0.04] backdrop-blur-[12px] border border-white/[0.07] shadow-[0_16px_48px_rgba(0,0,0,0.45)] p-6 sm:p-7 lg:p-8 flex flex-col">
-            <p className="text-[15px] font-semibold tracking-[-0.02em] text-white">About me</p>
-            <div className="mt-6 lg:mt-8 space-y-4 text-[18px] lg:text-[20px] leading-[1.75] text-white/60">
-              <p>
-                I’m Rizal Maulana Airlangga, an IT student and aspiring fullstack developer interested in building modern
-                web applications from frontend to backend. I enjoy working with technologies like React, Vue, Tailwind CSS,
-                Laravel, Node.js, and ASP.NET to turn ideas into functional digital products.
-              </p>
-              <p>
-                I learn primarily through projects, collaboration, and experimentation—using tools like GitHub, Figma, Notion,
-                and AI to improve how I build and solve problems. I’m currently focused on growing my fullstack development
-                and Agile teamwork skills while creating digital solutions that are practical, thoughtful, and useful.
+          <Reveal variant="up" delay={280} className="h-full">
+            <div className="relative h-full rounded-[20px] lg:rounded-[24px] bg-white/[0.04] backdrop-blur-[12px] border border-white/[0.07] shadow-[0_16px_48px_rgba(0,0,0,0.45)] p-6 sm:p-7 lg:p-8 flex flex-col">
+              <p className="text-[15px] font-semibold tracking-[-0.02em] text-white">About me</p>
+              <div className="mt-6 lg:mt-8 space-y-4 text-[18px] lg:text-[20px] leading-[1.75] text-white/60">
+                <p>
+                  I’m Rizal Maulana Airlangga, an IT student and aspiring fullstack developer interested in building modern
+                  web applications from frontend to backend. I enjoy working with technologies like React, Vue, Tailwind CSS,
+                  Laravel, Node.js, and ASP.NET to turn ideas into functional digital products.
+                </p>
+                <p>
+                  I learn primarily through projects, collaboration, and experimentation—using tools like GitHub, Figma, Notion,
+                  and AI to improve how I build and solve problems. I’m currently focused on growing my fullstack development
+                  and Agile teamwork skills while creating digital solutions that are practical, thoughtful, and useful.
+                </p>
+              </div>
+              <div className="flex-1 min-h-[24px]" />
+              <p
+                className="mt-8 text-[28px] lg:text-[32px] leading-none text-white select-none"
+                style={{ fontFamily: "var(--font-hand), 'Caveat', cursive", fontStyle: "italic", fontWeight: 500 }}
+              >
+                Rizal Maulana A.
               </p>
             </div>
-            <div className="flex-1 min-h-[24px]" />
-                        <p
-              className="mt-8 text-[28px] lg:text-[32px] leading-none text-white select-none"
-              style={{ fontFamily: "var(--font-hand), 'Caveat', cursive", fontStyle: "italic", fontWeight: 500 }}
-            >
-              Rizal Maulana A.
-            </p>
-          </div>
+          </Reveal>
         </div>
       </div>
       {}
-      <div className="absolute bottom-0 inset-x-0 h-px bg-white/[0.06] [transform:translateZ(0)]" />
     </section>
   );
 }
@@ -975,7 +971,7 @@ function ToolsMarquee() {
 
   if (!tools.length) {
     return (
-      <section id="tools" className="relative bg-[#080405] border-y border-white/[0.06] py-10">
+      <section id="tools" className="relative bg-[#0a0404] border-b border-white/[0.06] pt-[72px] lg:pt-[128px] pb-16 lg:pb-24">
         <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
           <p className="text-sm font-mono tracking-[0.16em] text-[#F0F3FF]/70 animate-pulse">LOADING TOOLS...</p>
         </div>
@@ -990,24 +986,21 @@ function ToolsMarquee() {
   const dupBottom = [...bottomRow, ...bottomRow, ...bottomRow, ...bottomRow];
 
   return (
-    <section id="tools" className="relative bg-[#080405] border-y border-white/[0.06] overflow-hidden isolate [transform:translateZ(0)] [backface-visibility:hidden] scroll-mt-[88px] md:scroll-mt-[104px]" style={{ contain: "layout style" }}>
+    <section id="tools" className="relative bg-[#0a0404] border-b border-white/[0.06] overflow-hidden isolate [transform:translateZ(0)] [backface-visibility:hidden] scroll-mt-[88px] md:scroll-mt-[104px]" style={{ contain: "layout style" }}>
       {}
-      <div className="relative z-20 mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-12 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
+      <div className="relative z-20 mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-[72px] lg:pt-[128px] pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
-          <p className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#7AB8E8] shadow-[0_0_12px_rgba(122,184,232,0.6)]" />
-            Stack • {tools.length} tools
-          </p>
-          <h2 className="mt-3 text-[36px] sm:text-[44px] lg:text-[56px] font-light tracking-[-0.04em] leading-[0.9] text-white">
+          <Reveal as="p" variant="fade" className="flex items-center justify-center gap-2 text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#7AB8E8] shadow-[0_0_8px_rgba(122,184,232,0.6)]" />
+            Tools • {tools.length} tools
+          </Reveal>
+          <Reveal as="h2" variant="up" delay={120} className="mt-3 text-[36px] sm:text-[44px] lg:text-[56px] font-light tracking-[-0.04em] leading-[0.9] text-white">
             Tools I <span className="font-black tracking-[-0.06em]">rely on</span>
-          </h2>
+          </Reveal>
         </div>
-        <p className="hidden md:block text-[14px] lg:text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/60 uppercase max-w-[48ch] leading-relaxed">
-          Hover bar to slow • hover icon to pause & read
-        </p>
       </div>
 
-      <div className="relative z-30 pb-8 lg:pb-10 space-y-3 overflow-visible isolate" style={{ contain: "layout style" }}>
+      <div className="relative z-30 pb-16 lg:pb-[120px] space-y-2 overflow-visible isolate" style={{ contain: "layout style" }}>
         {}
         <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
           <div className="absolute inset-y-0 left-0 w-[6%] lg:w-[10%] bg-gradient-to-r from-[#080405] to-transparent" />
@@ -1016,13 +1009,13 @@ function ToolsMarquee() {
 
         {}
         <div
-          className="marquee-row marquee-row--top relative overflow-visible py-3 group/row isolate"
+          className="marquee-row marquee-row--top relative overflow-visible py-2 group/row isolate"
           onMouseEnter={() => setRowHoverTop(true)}
           onMouseLeave={() => setRowHoverTop(false)}
         >
           <div
             ref={topTrackRef}
-            className="marquee-track flex w-max items-center gap-3 lg:gap-4 [backface-visibility:hidden] [transform:translateZ(0)]"
+            className="marquee-track flex w-max items-center gap-2.5 lg:gap-3 [backface-visibility:hidden] [transform:translateZ(0)]"
             style={{ transform: "translate3d(0,0,0)", backfaceVisibility: "hidden" }}
           >
             {dupTop.map((t, i) => (
@@ -1032,9 +1025,9 @@ function ToolsMarquee() {
                 onMouseEnter={() => setHoveredTool(`top-${i}`)}
                 onMouseLeave={() => setHoveredTool(null)}
               >
-                <div className="relative w-[76px] h-[76px] lg:w-[88px] lg:h-[88px] rounded-[18px] lg:rounded-[20px] bg-white/[0.035] border border-white/[0.07] backdrop-blur-[8px] flex items-center justify-center p-[14px] lg:p-[16px] overflow-hidden transition-all duration-300 group-hover/card:bg-white/[0.08] group-hover/card:border-white/15 group-hover/card:scale-[1.04] group-hover/card:shadow-[0_8px_32px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.08)_inset]">
-                  <div className="absolute inset-0 rounded-[18px] lg:rounded-[20px] bg-gradient-to-b from-white/[0.06] to-transparent opacity-60 pointer-events-none" />
-                  <div className="absolute inset-0 rounded-[18px] lg:rounded-[20px] opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.10),transparent_70%)] pointer-events-none" />
+                <div className="relative w-[64px] h-[64px] lg:w-[72px] lg:h-[72px] rounded-[16px] lg:rounded-[18px] bg-white/[0.035] border border-white/[0.07] backdrop-blur-[8px] flex items-center justify-center p-3 lg:p-[14px] overflow-hidden transition-all duration-300 group-hover/card:bg-white/[0.08] group-hover/card:border-white/15 group-hover/card:scale-[1.04] group-hover/card:shadow-[0_8px_32px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.08)_inset]">
+                  <div className="absolute inset-0 rounded-[16px] lg:rounded-[18px] bg-gradient-to-b from-white/[0.06] to-transparent opacity-60 pointer-events-none" />
+                  <div className="absolute inset-0 rounded-[16px] lg:rounded-[18px] opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.10),transparent_70%)] pointer-events-none" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={t.logo_public_url}
@@ -1047,22 +1040,22 @@ function ToolsMarquee() {
                 </div>
                 {}
                 <div
-                  className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+18px)] z-30 w-[330px] lg:w-[380px] max-w-[calc(100vw-32px)] pointer-events-none transition-all duration-200 ${hoveredTool === `top-${i}` ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
+                  className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+18px)] z-30 w-[280px] lg:w-[320px] max-w-[calc(100vw-32px)] pointer-events-none transition-all duration-200 ${hoveredTool === `top-${i}` ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
                 >
-                  <div className="relative rounded-[20px] border border-white/10 bg-[#111010] shadow-[0_16px_48px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.06)_inset] overflow-hidden">
+                  <div className="relative rounded-[16px] border border-white/10 bg-[#111010] shadow-[0_16px_48px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.06)_inset] overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
-                    <div className="relative p-5 lg:p-6">
-                      <div className="flex items-center gap-4">
-                        <span className="w-14 h-14 lg:w-16 lg:h-16 rounded-[16px] lg:rounded-[18px] bg-white/[0.06] border border-white/10 flex items-center justify-center p-2.5 shrink-0">
+                    <div className="relative p-4 lg:p-5">
+                      <div className="flex items-center gap-3">
+                        <span className="w-11 h-11 lg:w-12 lg:h-12 rounded-[12px] lg:rounded-[14px] bg-white/[0.06] border border-white/10 flex items-center justify-center p-2 shrink-0">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={t.logo_public_url} alt="" className="w-full h-full object-contain" />
                         </span>
                         <div className="min-w-0">
-                          <p className="text-[20px] lg:text-[22px] font-semibold tracking-[-0.02em] text-white leading-tight">{t.name}</p>
-                          <p className="mt-1.5 text-[15px] lg:text-[16px] font-mono tracking-[0.08em] text-[#F0F3FF]/78">{t.category || "Lainnya"}</p>
+                          <p className="text-[17px] lg:text-[19px] font-semibold tracking-[-0.02em] text-white leading-tight">{t.name}</p>
+                          <p className="mt-1 text-[12px] lg:text-[13px] font-mono tracking-[0.08em] text-[#F0F3FF]/78">{t.category || "Lainnya"}</p>
                         </div>
                       </div>
-                      <p className="mt-3 text-[16px] lg:text-[17px] leading-[1.65] text-white/70 line-clamp-3">{t.short_desc}</p>
+                      <p className="mt-2 text-[14px] lg:text-[15px] leading-[1.65] text-white/70 line-clamp-3">{t.short_desc}</p>
                     </div>
                   </div>
                   <div className="mx-auto -mt-[1px] w-5 h-5 rotate-45 bg-[#111010] border-r border-b border-white/10 shadow-[0_8px_16px_rgba(0,0,0,0.25)]" />
@@ -1074,13 +1067,13 @@ function ToolsMarquee() {
 
         {}
         <div
-          className="marquee-row marquee-row--bottom relative overflow-visible py-3 group/row isolate"
+          className="marquee-row marquee-row--bottom relative overflow-visible py-2 group/row isolate"
           onMouseEnter={() => setRowHoverBottom(true)}
           onMouseLeave={() => setRowHoverBottom(false)}
         >
           <div
             ref={bottomTrackRef}
-            className="marquee-track flex w-max items-center gap-3 lg:gap-4 [backface-visibility:hidden] [transform:translateZ(0)]"
+            className="marquee-track flex w-max items-center gap-2.5 lg:gap-3 [backface-visibility:hidden] [transform:translateZ(0)]"
             style={{ transform: "translate3d(0,0,0)", backfaceVisibility: "hidden" }}
           >
             {dupBottom.map((t, i) => (
@@ -1090,9 +1083,9 @@ function ToolsMarquee() {
                 onMouseEnter={() => setHoveredTool(`bottom-${i}`)}
                 onMouseLeave={() => setHoveredTool(null)}
               >
-                <div className="relative w-[76px] h-[76px] lg:w-[88px] lg:h-[88px] rounded-[18px] lg:rounded-[20px] bg-white/[0.035] border border-white/[0.07] backdrop-blur-[8px] flex items-center justify-center p-[14px] lg:p-[16px] overflow-hidden transition-all duration-300 group-hover/card:bg-white/[0.08] group-hover/card:border-white/15 group-hover/card:scale-[1.04] group-hover/card:shadow-[0_8px_32px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.08)_inset]">
-                  <div className="absolute inset-0 rounded-[18px] lg:rounded-[20px] bg-gradient-to-b from-white/[0.06] to-transparent opacity-60 pointer-events-none" />
-                  <div className="absolute inset-0 rounded-[18px] lg:rounded-[20px] opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.10),transparent_70%)] pointer-events-none" />
+                <div className="relative w-[64px] h-[64px] lg:w-[72px] lg:h-[72px] rounded-[16px] lg:rounded-[18px] bg-white/[0.035] border border-white/[0.07] backdrop-blur-[8px] flex items-center justify-center p-3 lg:p-[14px] overflow-hidden transition-all duration-300 group-hover/card:bg-white/[0.08] group-hover/card:border-white/15 group-hover/card:scale-[1.04] group-hover/card:shadow-[0_8px_32px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.08)_inset]">
+                  <div className="absolute inset-0 rounded-[16px] lg:rounded-[18px] bg-gradient-to-b from-white/[0.06] to-transparent opacity-60 pointer-events-none" />
+                  <div className="absolute inset-0 rounded-[16px] lg:rounded-[18px] opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.10),transparent_70%)] pointer-events-none" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={t.logo_public_url}
@@ -1104,22 +1097,22 @@ function ToolsMarquee() {
                   />
                 </div>
                 <div
-                  className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+18px)] z-30 w-[330px] lg:w-[380px] max-w-[calc(100vw-32px)] pointer-events-none transition-all duration-200 ${hoveredTool === `bottom-${i}` ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
+                  className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+18px)] z-30 w-[280px] lg:w-[320px] max-w-[calc(100vw-32px)] pointer-events-none transition-all duration-200 ${hoveredTool === `bottom-${i}` ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
                 >
-                  <div className="relative rounded-[20px] border border-white/10 bg-[#111010] shadow-[0_16px_48px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.06)_inset] overflow-hidden">
+                  <div className="relative rounded-[16px] border border-white/10 bg-[#111010] shadow-[0_16px_48px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.06)_inset] overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
-                    <div className="relative p-5 lg:p-6">
-                      <div className="flex items-center gap-4">
-                        <span className="w-14 h-14 lg:w-16 lg:h-16 rounded-[16px] lg:rounded-[18px] bg-white/[0.06] border border-white/10 flex items-center justify-center p-2.5 shrink-0">
+                    <div className="relative p-4 lg:p-5">
+                      <div className="flex items-center gap-3">
+                        <span className="w-11 h-11 lg:w-12 lg:h-12 rounded-[12px] lg:rounded-[14px] bg-white/[0.06] border border-white/10 flex items-center justify-center p-2 shrink-0">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={t.logo_public_url} alt="" className="w-full h-full object-contain" />
                         </span>
                         <div className="min-w-0">
-                          <p className="text-[20px] lg:text-[22px] font-semibold tracking-[-0.02em] text-white leading-tight">{t.name}</p>
-                          <p className="mt-1.5 text-[15px] lg:text-[16px] font-mono tracking-[0.08em] text-[#F0F3FF]/78">{t.category || "Lainnya"}</p>
+                          <p className="text-[17px] lg:text-[19px] font-semibold tracking-[-0.02em] text-white leading-tight">{t.name}</p>
+                          <p className="mt-1 text-[12px] lg:text-[13px] font-mono tracking-[0.08em] text-[#F0F3FF]/78">{t.category || "Lainnya"}</p>
                         </div>
                       </div>
-                      <p className="mt-3 text-[16px] lg:text-[17px] leading-[1.65] text-white/70 line-clamp-3">{t.short_desc}</p>
+                      <p className="mt-2 text-[14px] lg:text-[15px] leading-[1.65] text-white/70 line-clamp-3">{t.short_desc}</p>
                     </div>
                   </div>
                   <div className="mx-auto -mt-[1px] w-5 h-5 rotate-45 bg-[#111010] border-r border-b border-white/10 shadow-[0_8px_16px_rgba(0,0,0,0.25)]" />
@@ -1246,19 +1239,22 @@ function WhatCanIDo() {
   ];
 
   return (
-    <section id="services" className="relative bg-black border-y border-white/[0.06] scroll-mt-[88px] md:scroll-mt-[128px]">
-            <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-14 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
+    <section id="services" className="relative bg-[#0a0404] border-t border-white/[0.06] scroll-mt-[88px] md:scroll-mt-[128px]">
+      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-[96px] lg:pt-[160px] pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
-          <p className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-white/60 uppercase flex items-center justify-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#7AB8E8]" /> Services
-          </p>
-          <h2 className="mt-3 text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[88px] font-black tracking-[-0.06em] leading-[0.9] text-white">
+          <Reveal as="p" variant="fade" className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-white/60 uppercase flex items-center justify-center gap-2">
+            <svg data-section-icon="hexagon" aria-hidden="true" viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-[#7AB8E8]">
+              <path d="M6 3H18L22 12 18 21H6L2 12Z" />
+            </svg>
+            Skills
+          </Reveal>
+          <Reveal as="h2" variant="up" delay={120} className="mt-3 text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[88px] font-black tracking-[-0.06em] leading-[0.9] text-white">
             What can I do?
-          </h2>
+          </Reveal>
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pb-6 lg:pb-8">
+      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pb-16 lg:pb-[208px] xl:pb-[224px]">
         {}
         <div className="border-t border-white/[0.28]" onMouseMove={recordMove}>
           {services.map((item, i) => {
@@ -1536,24 +1532,27 @@ function WorkProcess() {
   ];
 
   return (
-    <section id="process" className="relative bg-[#0a0404] border-y border-white/[0.06] scroll-mt-[88px] md:scroll-mt-[112px]">
+    <section id="how-i-work" className="relative bg-[#0a0404] border-b border-white/[0.06] scroll-mt-[88px] md:scroll-mt-[112px]">
       <div ref={wrapRef} className="relative xl:h-[280vh]">
         <div className="xl:sticky xl:top-0 xl:h-screen xl:overflow-hidden flex flex-col justify-center xl:justify-start py-10 xl:py-0 xl:pt-[104px]">
-      <div className="mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-10 lg:pt-14 xl:pt-6 pb-6 lg:pb-8 xl:pb-4 flex flex-col items-center text-center gap-5">
+      <div className="mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-[96px] lg:pt-0 pb-6 lg:pb-8 xl:pb-4 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
-          <p className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
-            <span className="text-[#7AB8E8]" aria-hidden>✦</span> Work Process
-          </p>
-          <h2 className="mt-3 text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[72px] font-black tracking-[-0.06em] leading-[0.9] text-white">
+          <Reveal as="p" variant="fade" className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
+            <svg data-section-icon="star-four" aria-hidden="true" viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-[#7AB8E8]">
+              <path d="M12 1C13.7 7.3 16.7 10.3 23 12 16.7 13.7 13.7 16.7 12 23 10.3 16.7 7.3 13.7 1 12 7.3 10.3 10.3 7.3 12 1Z" />
+            </svg>
+            How I Work
+          </Reveal>
+          <Reveal as="h2" variant="up" delay={120} className="mt-3 text-[44px] sm:text-[60px] lg:text-[80px] xl:text-[72px] font-black tracking-[-0.06em] leading-[0.9] text-white">
             FROM VISION TO REALITY
-          </h2>
+          </Reveal>
         </div>
-        <p className="hidden md:block text-[14px] font-mono tracking-[0.12em] text-[#F0F3FF]/60 uppercase max-w-[48ch] leading-relaxed">
+        <p className="hidden md:block text-[14px] font-mono tracking-[0.12em] text-[#F0F3FF]/60 uppercase max-w-[60ch] leading-relaxed">
           4 steps, from first idea to launched product
         </p>
       </div>
 
-      <div className="mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pb-10 lg:pb-14 xl:pb-0">
+      <div className="mx-auto w-full max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pb-[77px] lg:pb-[128px] xl:pb-[83px]">
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5">
           {steps.map((s, i) => (
             <StepCard key={s.num} s={s} i={i} progress={progress} scrub={scrub} reduced={reduced} />

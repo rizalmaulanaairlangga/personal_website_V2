@@ -5,13 +5,21 @@ import { usePathname, useRouter } from "next/navigation";
 
 const menuItems = [
   { id: "home", label: "Home", href: "#" },
-  { id: "projects", label: "Projects", href: "#projects" },
-  { id: "about", label: "About", href: "#about" },
-  { id: "tools", label: "Tools", href: "#tools" },
-  { id: "services", label: "Services", href: "#services" },
-  { id: "process", label: "Work Process", href: "#process" },
+  { id: "projects", label: "Projects", href: "#projects", activeShape: "square" },
+  { id: "about", label: "About", href: "#about", activeShape: "triangle" },
+  { id: "tools", label: "Tools", href: "#tools", activeShape: "circle" },
+  { id: "services", label: "Services", href: "#services", activeShape: "hexagon" },
+  { id: "how-i-work", label: "How I Work", href: "#how-i-work", activeShape: "star-four" },
   { id: "contact", label: "Contact", href: "#contact" },
 ];
+
+const activeMarkPaths = {
+  square: "M4 4h16v16H4z",
+  triangle: "M12 2 22 21H2L12 2Z",
+  circle: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z",
+  hexagon: "M6 3H18L22 12 18 21H6L2 12Z",
+  "star-four": "M12 1C13.7 7.3 16.7 10.3 23 12 16.7 13.7 13.7 16.7 12 23 10.3 16.7 7.3 13.7 1 12 7.3 10.3 10.3 7.3 12 1Z",
+};
 
 export default function SiteNav() {
   const pathname = usePathname();
@@ -36,7 +44,7 @@ export default function SiteNav() {
 
   useEffect(() => {
     if (!isHome) return;
-    const ids = ["projects", "about", "tools", "services", "process", "contact"];
+    const ids = ["projects", "about", "tools", "services", "how-i-work", "contact"];
     const els = ids.map((id) => document.getElementById(id)).filter(Boolean);
     if (!els.length) return;
     const obs = new IntersectionObserver(
@@ -179,7 +187,14 @@ export default function SiteNav() {
                     <span aria-hidden className="absolute -bottom-1.5 lg:-bottom-2 left-0 h-[3px] lg:h-[4px] w-full bg-[#7AB8E8] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left motion-reduce:transition-none" />
                   </span>
                   {active && (
-                    <span aria-hidden className="w-[10px] h-[10px] bg-[#7AB8E8] shrink-0" />
+                    <svg
+                      aria-hidden="true"
+                      data-active-shape={item.activeShape || "circle"}
+                      viewBox="0 0 24 24"
+                      className="w-[10px] h-[10px] fill-[#7AB8E8] shrink-0"
+                    >
+                      <path d={activeMarkPaths[item.activeShape || "circle"]} />
+                    </svg>
                   )}
                 </a>
               );

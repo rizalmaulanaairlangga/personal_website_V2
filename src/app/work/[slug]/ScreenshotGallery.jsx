@@ -1,5 +1,6 @@
 import "./gallery.css";
 import GalleryReveal from "./GalleryReveal";
+import Reveal from "@/components/Reveal";
 import { orderedMobileScreenshots } from "./screenshot-layout.mjs";
 
 export function shotUrl(path) {
@@ -30,79 +31,92 @@ export default function ScreenshotGallery({ projectId, projectName, rows, layout
       data-gallery-layout={layout}
       className="gallery-section"
     >
-      <GalleryReveal projectId={projectId} />
+      <GalleryReveal />
       <div className="gallery-container">
         {hasDeviceRow ? (
           <div data-device-row className={`device-row${mobileOnly ? " device-row--mobile-only" : ""}`}>
             {mobileOnly
               ? mobileRows.map((row, index) => (
-                  <div
+                  <Reveal
                     key={row.id || row.image_path}
-                    data-device="phone"
-                    className={`device device--phone mobile-only-phone mobile-only-phone--${mobileRows.length === 1 ? "center" : index === 0 ? "left" : index === mobileRows.length - 1 ? "right" : "center"}`}
+                    variant="phone"
+                    rot={index === 0 ? "-6deg" : "4deg"}
+                    delay={index * 150}
+                    waitForImages
                   >
-                    <div className="device-notch" />
-                    <div className="device-screen">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        data-screenshot-image
-                        src={shotUrl(row.image_path)}
-                        alt={alt(row, `${projectName} mobile screenshot ${index + 1}`)}
-                        loading="lazy"
-                        decoding="async"
-                        className="device-img device-img--mobile"
-                      />
+                    <div
+                      data-device="phone"
+                      className={`device device--phone mobile-only-phone mobile-only-phone--${mobileRows.length === 1 ? "center" : index === 0 ? "left" : index === mobileRows.length - 1 ? "right" : "center"}`}
+                    >
+                      <div className="device-notch" />
+                      <div className="device-screen">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          data-screenshot-image
+                          src={shotUrl(row.image_path)}
+                          alt={alt(row, `${projectName} mobile screenshot ${index + 1}`)}
+                          loading="lazy"
+                          decoding="async"
+                          className="device-img device-img--mobile"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </Reveal>
                 ))
               : mobileRows[0] ? (
-                  <div data-device="phone" className="device device--phone">
-                    <div className="device-notch" />
-                    <div className="device-screen">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        data-screenshot-image
-                        src={shotUrl(mobileRows[0].image_path)}
-                        alt={alt(mobileRows[0], projectName + " mobile screenshot")}
-                        loading="lazy"
-                        decoding="async"
-                        className="device-img"
-                      />
+                  <Reveal variant="phone" rot="-6deg" waitForImages>
+                    <div data-device="phone" className="device device--phone">
+                      <div className="device-notch" />
+                      <div className="device-screen">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          data-screenshot-image
+                          src={shotUrl(mobileRows[0].image_path)}
+                          alt={alt(mobileRows[0], projectName + " mobile screenshot")}
+                          loading="lazy"
+                          decoding="async"
+                          className="device-img"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </Reveal>
                 ) : null}
             {!mobileOnly && tablet ? (
-              <div data-device="tablet" className="device device--tablet">
-                <div className="device-notch" />
-                <div className="device-screen">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    data-screenshot-image
-                    src={shotUrl(tablet.image_path)}
-                    alt={alt(tablet, projectName + " tablet screenshot")}
-                    loading="lazy"
-                    decoding="async"
-                    className="device-img"
-                  />
+              <Reveal variant="phone" rot="4deg" delay={150} waitForImages>
+                <div data-device="tablet" className="device device--tablet">
+                  <div className="device-notch" />
+                  <div className="device-screen">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      data-screenshot-image
+                      src={shotUrl(tablet.image_path)}
+                      alt={alt(tablet, projectName + " tablet screenshot")}
+                      loading="lazy"
+                      decoding="async"
+                      className="device-img"
+                    />
+                  </div>
                 </div>
-              </div>
+              </Reveal>
             ) : null}
           </div>
         ) : null}
         {desktopBelow ? (
-          <div data-desktop-showcase className="desktop-showcase">
-            <div className="desktop-frame">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                data-screenshot-image
-                src={shotUrl(desktopBelow.image_path)}
-                alt={alt(desktopBelow, projectName + " desktop screenshot")}
-                loading="lazy"
-                decoding="async"
-                className="desktop-img"
-              />
+          <Reveal as="div" variant="clip" className="desktop-showcase" waitForImages>
+            <div data-desktop-showcase>
+              <div className="desktop-frame">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  data-screenshot-image
+                  src={shotUrl(desktopBelow.image_path)}
+                  alt={alt(desktopBelow, projectName + " desktop screenshot")}
+                  loading="eager"
+                  decoding="async"
+                  className="desktop-img"
+                />
+              </div>
             </div>
-          </div>
+          </Reveal>
         ) : null}
       </div>
     </section>

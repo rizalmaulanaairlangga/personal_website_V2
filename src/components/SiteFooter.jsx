@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 
 const CONTACT_EMAIL = "rizalmaulanaairlangga456@gmail.com";
+const FOOTER_REVEAL_OFFSET = 600;
 
 const CONTACTS = [
   {
@@ -61,14 +62,14 @@ export default function SiteFooter({ spacerId }) {
         const end = docH - vh;
         const y = window.scrollY;
         const progress = Math.min(1, Math.max(0, (y - start) / Math.max(1, end - start)));
-        const off = (1 - progress) * 92;
+        const off = (1 - progress) * FOOTER_REVEAL_OFFSET;
         inner.style.transform = `translate3d(0,${off}px,0)`;
         inner.style.willChange = progress < 0.99 ? "transform" : "auto";
       });
     };
 
-    /* The footer is one viewport tall and grows with its content, so the flow
-       spacer that carries the reveal height has to track the real height. */
+    /* The footer is at least one viewport tall and can grow with its content,
+       so the flow spacer that carries the reveal height tracks its real height. */
     const syncHeight = () => {
       fh = footer.offsetHeight;
       if (spacer) {
@@ -103,7 +104,7 @@ export default function SiteFooter({ spacerId }) {
         ref={footerRef}
         className="footer-surface fixed bottom-0 inset-x-0 z-0 overflow-hidden"
       >
-        <div ref={innerRef} className="footer-inner" style={{ transform: "translate3d(0,92px,0)" }}>
+        <div ref={innerRef} className="footer-inner" style={{ transform: `translate3d(0,${FOOTER_REVEAL_OFFSET}px,0)` }}>
           <div className="footer-main">
             <p className="footer-eyebrow">OPEN TO OPPORTUNITIES</p>
             <h2 className="footer-headline">

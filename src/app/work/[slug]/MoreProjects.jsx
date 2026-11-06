@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Reveal from "@/components/Reveal";
 import FullBleedHeading from "../FullBleedHeading";
 
 export default function MoreProjects({ projects }) {
@@ -135,37 +136,46 @@ export default function MoreProjects({ projects }) {
   return (
     <section className="bg-[#0A0404] py-10 lg:py-12 overflow-hidden">
       <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
-        <FullBleedHeading
-          tag="h3"
-          text="more projects"
-          label="More projects"
-          className="tracking-[0.02em] [word-spacing:0.14em] text-[#F0F3FF]/50"
-        />
+        <Reveal variant="slide-x">
+          <FullBleedHeading
+            tag="h3"
+            text="more projects"
+            label="More projects"
+            className="tracking-[0.02em] [word-spacing:0.14em] text-[#F0F3FF]/50"
+          />
+        </Reveal>
       </div>
       <style>{`[data-hovered] .project-overlay{background-color:rgba(0,0,0,0.30)!important}[data-hovered] .project-mobile-circle{opacity:1!important}`}</style>
       <div ref={containerRef} className="relative cursor-none mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
         <div className="mt-6 lg:mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
-          {(projects || []).map((p) => (
-            <Link
-              key={p.slug}
-              href={`/work/${p.slug}`}
-              data-project-link={`/work/${p.slug}`}
-              className="group relative overflow-hidden rounded-[14px] bg-[#111] border border-white/[0.10] h-[380px] lg:h-[560px] block cursor-none"
-            >
-              {p.foto_public_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.foto_public_url} alt={p.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.15] transition-transform duration-700" />
-              ) : null}
-              <div className="project-overlay absolute inset-0 bg-black/35 group-hover:bg-black/25 transition-colors duration-300" />
-              <div className="absolute inset-0 p-6 lg:p-8 flex flex-col justify-center items-center text-center text-[#F0F3FF]">
-                <p className="text-[22px] lg:text-[28px] font-semibold tracking-[-0.02em] leading-tight">{p.name}</p>
-                <p className="mt-2 text-[14px] lg:text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/75">{p.project_type || ""}</p>
-              </div>
-              <div className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#7AB8E8] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                <span className="arrow-mark w-[24px] h-[24px]">→</span>
-                <span className="text-[13px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
-              </div>
-            </Link>
+          {(projects || []).map((p, index) => (
+            <Reveal key={p.slug} variant="fade" delay={index * 120} className="h-[380px] lg:h-[560px]">
+              <Link
+                href={`/work/${p.slug}`}
+                data-project-link={`/work/${p.slug}`}
+                className="project-card group relative overflow-hidden rounded-[14px] bg-[#111] border border-white/[0.10] h-full block cursor-none"
+              >
+                {p.foto_public_url ? (
+                  <div className="project-card__media absolute inset-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.foto_public_url} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
+                  </div>
+                ) : null}
+                <div className="project-overlay absolute inset-0 bg-black/35 group-hover:bg-black/25 transition-colors duration-300" />
+                <div className="absolute inset-0 p-6 lg:p-8 flex flex-col justify-center items-center text-center text-[#F0F3FF]">
+                  <Reveal as="p" variant="fade" delay={index * 120 + 300} className="text-[22px] lg:text-[28px] font-semibold tracking-[-0.02em] leading-tight">
+                    {p.name}
+                  </Reveal>
+                  <Reveal as="p" variant="fade" delay={index * 120 + 300} className="mt-2 text-[14px] lg:text-[15px] font-mono tracking-[0.08em] text-[#F0F3FF]/75">
+                    {p.project_type || ""}
+                  </Reveal>
+                </div>
+                <div className="project-mobile-circle lg:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[148px] h-[148px] rounded-full bg-[#7AB8E8] flex flex-col items-center justify-center gap-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                  <span className="arrow-mark w-[24px] h-[24px]">→</span>
+                  <span className="text-[13px] font-black tracking-[0.08em] whitespace-nowrap">VIEW CASE STUDY</span>
+                </div>
+              </Link>
+            </Reveal>
           ))}
         </div>
         <div
