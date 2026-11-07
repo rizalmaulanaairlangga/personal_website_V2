@@ -8,7 +8,7 @@ const menuItems = [
   { id: "projects", label: "Projects", href: "#projects", activeShape: "square" },
   { id: "about", label: "About", href: "#about", activeShape: "triangle" },
   { id: "tools", label: "Tools", href: "#tools", activeShape: "circle" },
-  { id: "services", label: "Services", href: "#services", activeShape: "hexagon" },
+  { id: "skills", label: "Skills", href: "#skills", activeShape: "hexagon" },
   { id: "how-i-work", label: "How I Work", href: "#how-i-work", activeShape: "star-four" },
   { id: "contact", label: "Contact", href: "#contact" },
 ];
@@ -18,8 +18,32 @@ const activeMarkPaths = {
   triangle: "M12 2 22 21H2L12 2Z",
   circle: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z",
   hexagon: "M6 3H18L22 12 18 21H6L2 12Z",
-  "star-four": "M12 1C13.7 7.3 16.7 10.3 23 12 16.7 13.7 13.7 16.7 12 23 10.3 16.7 7.3 13.7 1 12 7.3 10.3 10.3 7.3 12 1Z",
+  "star-four": "M12 1C13.2 7 15 8.8 23 12 15 15.2 13.2 17 12 23 10.8 17 9 15.2 1 12 9 8.8 10.8 7 12 1Z",
 };
+
+function getSectionScrollOffset(element, id) {
+  const headerHeight = document.querySelector("header")?.getBoundingClientRect().height
+    ?? (window.innerWidth >= 768 ? 92 : 76);
+  const scrollMargin = Number.parseFloat(window.getComputedStyle(element).scrollMarginTop) || 0;
+  const targetGap = 20;
+
+  if (id === "about") {
+    const paddingTop = Number.parseFloat(window.getComputedStyle(element).paddingTop) || 0;
+    return scrollMargin + paddingTop - headerHeight - targetGap;
+  }
+
+  if (id === "skills") {
+    const content = element.firstElementChild;
+    const paddingTop = content ? Number.parseFloat(window.getComputedStyle(content).paddingTop) || 0 : 0;
+    return scrollMargin + paddingTop - headerHeight - targetGap;
+  }
+
+  if (id === "how-i-work" && window.innerWidth >= 1280) {
+    return 200;
+  }
+
+  return scrollMargin - headerHeight - targetGap;
+}
 
 export default function SiteNav() {
   const pathname = usePathname();
@@ -44,7 +68,7 @@ export default function SiteNav() {
 
   useEffect(() => {
     if (!isHome) return;
-    const ids = ["projects", "about", "tools", "services", "how-i-work", "contact"];
+    const ids = ["projects", "about", "tools", "skills", "how-i-work", "contact"];
     const els = ids.map((id) => document.getElementById(id)).filter(Boolean);
     if (!els.length) return;
     const obs = new IntersectionObserver(
@@ -80,8 +104,18 @@ export default function SiteNav() {
         }
         const el = document.getElementById(item.id);
         if (!el) return;
-        if (lenis?.scrollTo) lenis.scrollTo(el, { duration: 1.4 });
-        else el.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (item.id === "contact") {
+          const end = document.documentElement.scrollHeight - window.innerHeight;
+          if (lenis?.scrollTo) lenis.scrollTo(end, { duration: 1.4 });
+          else window.scrollTo({ top: end, behavior: "smooth" });
+          return;
+        }
+        const offset = getSectionScrollOffset(el, item.id);
+        if (lenis?.scrollTo) lenis.scrollTo(el, { duration: 1.4, offset });
+        else {
+          const scrollMargin = Number.parseFloat(window.getComputedStyle(el).scrollMarginTop) || 0;
+          window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - scrollMargin + offset, behavior: "smooth" });
+        }
       }, 90);
     } else {
       try {

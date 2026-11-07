@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useLayoutEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from "framer-motion";
 
 import Reveal from "@/components/Reveal";
 import "@/components/reveal.css";
@@ -122,7 +122,7 @@ export default function Home() {
      still across real time rather than a few animation frames. */
   useEffect(() => {
     if (showIntro) return;
-    const SECTION_IDS = ["projects", "about", "tools", "services", "how-i-work", "contact"];
+    const SECTION_IDS = ["projects", "about", "tools", "skills", "how-i-work", "contact"];
     let id = "";
     try { id = sessionStorage.getItem("landing-target") || ""; } catch {}
     if (!id || !SECTION_IDS.includes(id)) return;
@@ -165,13 +165,30 @@ export default function Home() {
           if (id === "contact") {
             /* The footer is a fixed layer revealed at the end of the page, so
                the document end is the only position that shows it whole. */
-            const end = document.documentElement.scrollHeight;
+            const end = document.documentElement.scrollHeight - window.innerHeight;
             if (lenis?.scrollTo) lenis.scrollTo(end, { duration: 1.4 });
             else window.scrollTo({ top: end, behavior: "smooth" });
             return;
           }
-          if (lenis?.scrollTo) lenis.scrollTo(target, { duration: 1.4 });
-          else target.scrollIntoView({ behavior: "smooth", block: "start" });
+          const headerHeight = document.querySelector("header")?.getBoundingClientRect().height
+            ?? (window.innerWidth >= 768 ? 92 : 76);
+          let offset = -headerHeight;
+          const scrollMargin = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0;
+          const targetGap = 20;
+          if (id === "about") {
+            const paddingTop = Number.parseFloat(window.getComputedStyle(target).paddingTop) || 0;
+            offset = scrollMargin + paddingTop - headerHeight - targetGap;
+          } else if (id === "skills") {
+            const content = target.firstElementChild;
+            const paddingTop = content ? Number.parseFloat(window.getComputedStyle(content).paddingTop) || 0 : 0;
+            offset = scrollMargin + paddingTop - headerHeight - targetGap;
+          } else if (id === "how-i-work" && window.innerWidth >= 1280) {
+            offset = 200;
+          } else if (id === "projects") {
+            offset = scrollMargin - headerHeight - targetGap;
+          }
+          if (lenis?.scrollTo) lenis.scrollTo(target, { duration: 1.4, offset });
+          else window.scrollTo({ top: window.scrollY + target.getBoundingClientRect().top - scrollMargin + offset, behavior: "smooth" });
         } catch {}
       }));
     };
@@ -357,7 +374,7 @@ export default function Home() {
 
       <WorkProcess />
 
-      <div className="h-16 lg:h-24 xl:h-32 bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
+      <div className="h-[32px] lg:h-[44px] xl:h-[72px] bg-[#0a0404] relative isolate [transform:translateZ(0)] [backface-visibility:hidden]" aria-hidden />
 
       </div>
 
@@ -670,8 +687,8 @@ function ProjectCard({ project }) {
       <motion.div
         initial={{ x: 22, y: 16, opacity: 0 }}
         whileInView={{ x: 0, y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.35 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
+        viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
         className="absolute top-6 lg:top-8 left-[4%] lg:left-[3.5%] z-10 will-change-transform"
       >
         <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 backdrop-blur-[10px] px-3.5 py-1.5 text-[14px] font-mono tracking-[0.14em] text-white uppercase shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
@@ -684,8 +701,8 @@ function ProjectCard({ project }) {
         <motion.h2
           initial={{ y: 34, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+          viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+          transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
           className="text-[36px] sm:text-[52px] lg:text-[68px] xl:text-[80px] font-medium tracking-[-0.04em] leading-[0.9] text-white max-w-[18ch] drop-shadow-[0_2px_18px_rgba(0,0,0,0.55)] [text-shadow:0_1px_20px_rgba(0,0,0,0.45)] will-change-transform"
         >
           {title}
@@ -693,8 +710,8 @@ function ProjectCard({ project }) {
         <motion.p
           initial={{ y: 28, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+          transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
           className="mt-4 lg:mt-5 inline-flex max-w-[58ch] rounded-[14px] border border-white/10 bg-black/40 backdrop-blur-[12px] px-5 py-3 text-[14px] sm:text-[15px] font-mono tracking-[0.10em] text-white leading-relaxed shadow-[0_8px_32px_rgba(0,0,0,0.38)] will-change-transform"
         >
           {subtitle}
@@ -705,8 +722,8 @@ function ProjectCard({ project }) {
       <motion.div
         initial={{ x: 20, y: 14, opacity: 0 }}
         whileInView={{ x: 0, y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.35 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
+        viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
         className="absolute bottom-6 lg:bottom-8 left-[4%] lg:left-[3.5%] z-10 will-change-transform"
       >
         <ul className="flex flex-col gap-[4px] rounded-[12px] border border-white/10 bg-black/30 backdrop-blur-[10px] px-3.5 py-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
@@ -720,8 +737,8 @@ function ProjectCard({ project }) {
       <motion.div
         initial={{ y: 14, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.35 }}
-        transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.18 }}
+        viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.18 }}
         className="absolute bottom-6 lg:bottom-8 right-[4%] lg:right-[3.5%] z-10 will-change-transform"
       >
         <p className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-[10px] px-3 py-1.5 text-[13px] sm:text-[14px] font-mono tracking-[0.08em] text-white shadow-[0_4px_16px_rgba(0,0,0,0.25)]">YR/ {year}</p>
@@ -741,6 +758,12 @@ function ProjectCard({ project }) {
 function ProjectYearBar() {
   const [range, setRange] = useState(null);
   const [count, setCount] = useState(null);
+  const [animatedYears, setAnimatedYears] = useState({ start: 0, end: 0 });
+  const [lineRevealed, setLineRevealed] = useState(false);
+  const [buttonRevealed, setButtonRevealed] = useState(false);
+  const timelineRef = useRef(null);
+  const reducedMotion = useReducedMotion();
+
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -756,15 +779,93 @@ function ProjectYearBar() {
       setCount(data.length);
     });
   }, []);
+
+  useEffect(() => {
+    if (!range) return;
+    const [startYear, rangeEnd] = range.split(" - ").map(Number);
+    const endYear = Number.isFinite(rangeEnd) ? rangeEnd : startYear;
+    const finish = () => {
+      setAnimatedYears({ start: startYear, end: endYear });
+      setLineRevealed(true);
+      setButtonRevealed(true);
+    };
+
+    if (reducedMotion) {
+      finish();
+      return;
+    }
+
+    const section = timelineRef.current;
+    if (!section) return;
+    let started = false;
+    let frame = 0;
+    let buttonTimer = 0;
+    let observer;
+
+    const reveal = () => {
+      if (started) return;
+      started = true;
+      const startTime = performance.now();
+      const duration = 800;
+      const countFrame = (now) => {
+        const progress = Math.min(1, (now - startTime) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setAnimatedYears({
+          start: Math.round(startYear * eased),
+          end: Math.round(endYear * eased),
+        });
+        if (progress < 1) {
+          frame = requestAnimationFrame(countFrame);
+          return;
+        }
+        setLineRevealed(true);
+        buttonTimer = window.setTimeout(() => setButtonRevealed(true), 700);
+      };
+      frame = requestAnimationFrame(countFrame);
+    };
+
+    if (typeof IntersectionObserver === "undefined") {
+      reveal();
+    } else {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return;
+          observer.disconnect();
+          reveal();
+        },
+        { threshold: 0.1, rootMargin: "0px 0px -10% 0px" }
+      );
+      observer.observe(section);
+    }
+
+    return () => {
+      observer?.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+      if (buttonTimer) window.clearTimeout(buttonTimer);
+    };
+  }, [range, reducedMotion]);
+
   if (!range) return null;
   return (
-    <section className="relative bg-[#0a0a0a] border-y border-white/[0.06] py-10 lg:py-12">
+    <section ref={timelineRef} className="relative bg-[#0a0a0a] border-y border-white/[0.06] py-10 lg:py-12">
       <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] flex items-center gap-4">
-        <span className="text-[18px] lg:text-[20px] font-light tracking-[-0.02em] text-white whitespace-nowrap">{range}</span>
-        <div className="flex-1 h-[1px] bg-white/15" />
-        <a
+        <span className="text-[18px] lg:text-[20px] font-light tracking-[-0.02em] text-white whitespace-nowrap">
+          <span className="inline-block min-w-[4ch] tabular-nums">{animatedYears.start}</span>
+          {" - "}
+          <span className="inline-block min-w-[4ch] tabular-nums">{animatedYears.end}</span>
+        </span>
+        <motion.div
+          className="flex-1 h-[1px] bg-white/15 origin-left"
+          initial={reducedMotion ? false : { scaleX: 0 }}
+          animate={{ scaleX: lineRevealed ? 1 : 0 }}
+          transition={{ duration: reducedMotion ? 0 : 0.7, ease: [0.22, 1, 0.36, 1] }}
+        />
+        <motion.a
           href="/work"
           className="more-projects-link btn-motion flex items-center gap-3 group shrink-0"
+          initial={reducedMotion ? false : { opacity: 0, x: -24 }}
+          animate={{ opacity: buttonRevealed ? 1 : 0, x: buttonRevealed ? 0 : -24 }}
+          transition={{ duration: reducedMotion ? 0 : 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
           <span className="w-10 h-10 rounded-[10px] bg-[#7AB8E8] flex items-center justify-center text-white text-[18px]">
             <span aria-hidden="true" className="cta-arrow-viewport">
@@ -774,7 +875,7 @@ function ProjectYearBar() {
           </span>
           <span className="cta-label text-[15px] lg:text-[16px] font-medium tracking-[-0.02em]">More Projects</span>
           <sup className="text-[13px] font-mono text-[#F0F3FF]/78 -top-1">{count}</sup>
-        </a>
+        </motion.a>
       </div>
     </section>
   );
@@ -837,7 +938,7 @@ function WhoAmI() {
                   Laravel, Node.js, and ASP.NET to turn ideas into functional digital products.
                 </p>
                 <p>
-                  I learn primarily through projects, collaboration, and experimentation—using tools like GitHub, Figma, Notion,
+                  I learn primarily through projects, collaboration, and experimentation with using tools like GitHub, Figma, Notion,
                   and AI to improve how I build and solve problems. I’m currently focused on growing my fullstack development
                   and Agile teamwork skills while creating digital solutions that are practical, thoughtful, and useful.
                 </p>
@@ -859,6 +960,7 @@ function WhoAmI() {
 }
 
 function ToolsMarquee() {
+  const sectionRef = useRef(null);
   const [tools, setTools] = useState([]);
   const [hoveredTool, setHoveredTool] = useState(null);
   const [rowHoverTop, setRowHoverTop] = useState(false);
@@ -871,6 +973,7 @@ function ToolsMarquee() {
   const bottomSpeedRef = useRef(48);
   const rafRef = useRef(null);
   const lastTimeRef = useRef(null);
+  const introStartedRef = useRef(false);
   const hoveredToolRef = useRef(null);
   const rowHoverTopRef = useRef(false);
   const rowHoverBottomRef = useRef(false);
@@ -893,77 +996,127 @@ function ToolsMarquee() {
   useEffect(() => { rowHoverTopRef.current = rowHoverTop; }, [rowHoverTop]);
   useEffect(() => { rowHoverBottomRef.current = rowHoverBottom; }, [rowHoverBottom]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!tools.length) return;
+    const section = sectionRef.current;
     const topEl = topTrackRef.current;
     const bottomEl = bottomTrackRef.current;
-    if (!topEl || !bottomEl) return;
+    if (!section || !topEl || !bottomEl) return;
 
-    const getLoopWidth = (el) => el.scrollWidth / 4;
+    const getLoopWidth = (el, itemsPerSet) => {
+      const first = el.children[0];
+      const nextSet = el.children[itemsPerSet];
+      if (first && nextSet) {
+        return nextSet.getBoundingClientRect().left - first.getBoundingClientRect().left;
+      }
+      return el.scrollWidth / 4;
+    };
+    const normalizeOffset = (offset, loopWidth) => {
+      if (!loopWidth) return 0;
+      const phase = ((offset % loopWidth) + loopWidth) % loopWidth;
+      return phase === 0 ? 0 : phase - loopWidth;
+    };
     const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let topLoop = getLoopWidth(topEl, Math.ceil(tools.length / 2));
+    let bottomLoop = getLoopWidth(bottomEl, Math.floor(tools.length / 2));
+    let introAnimating = false;
+    let introStartedAt = 0;
+    let introViewportWidth = window.innerWidth;
+
+    const applyTransforms = () => {
+      topEl.style.transform = `translate3d(${topOffsetRef.current}px,0,0)`;
+      bottomEl.style.transform = `translate3d(${bottomOffsetRef.current}px,0,0)`;
+    };
 
     const init = () => {
-      const topLoop = getLoopWidth(topEl);
-      const bottomLoop = getLoopWidth(bottomEl);
-      topOffsetRef.current = 0;
-      bottomOffsetRef.current = -bottomLoop;
-      topEl.style.transform = `translate3d(0,0,0)`;
-      bottomEl.style.transform = `translate3d(${-bottomLoop}px,0,0)`;
-    };
-    init();
-    const onResize = () => init();
-    window.addEventListener("resize", onResize);
-
-    const tick = (now) => {
+      topLoop = getLoopWidth(topEl, Math.ceil(tools.length / 2));
+      bottomLoop = getLoopWidth(bottomEl, Math.floor(tools.length / 2));
       if (prefersReduced) {
-        rafRef.current = requestAnimationFrame(tick);
+        topOffsetRef.current = 0;
+        bottomOffsetRef.current = -bottomLoop;
+      } else if (!introStartedRef.current) {
+        topOffsetRef.current = window.innerWidth;
+        bottomOffsetRef.current = -bottomLoop - window.innerWidth;
+      } else {
+        topOffsetRef.current = normalizeOffset(topOffsetRef.current, topLoop);
+        bottomOffsetRef.current = normalizeOffset(bottomOffsetRef.current, bottomLoop);
+        introAnimating = false;
+      }
+      applyTransforms();
+    };
+
+    init();
+    const startInitialPass = () => {
+      if (introStartedRef.current) return;
+      introStartedRef.current = true;
+      if (prefersReduced) {
+        init();
         return;
       }
+      introAnimating = true;
+      introStartedAt = performance.now();
+      introViewportWidth = window.innerWidth;
+      lastTimeRef.current = null;
+      if (rafRef.current == null) rafRef.current = requestAnimationFrame(tick);
+    };
+
+    const tick = (now) => {
+      rafRef.current = null;
       if (lastTimeRef.current == null) lastTimeRef.current = now;
       const dt = Math.min(0.05, (now - lastTimeRef.current) / 1000);
       lastTimeRef.current = now;
 
-      const isMobile = window.innerWidth < 640;
-      const normal = isMobile ? 36 : 48; // px/s
-      const slow = normal * 0.38;
+      if (introAnimating) {
+        const progress = Math.min(1, (now - introStartedAt) / 900);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const travel = introViewportWidth * 1.8 * eased;
+        topOffsetRef.current = introViewportWidth - travel;
+        bottomOffsetRef.current = -bottomLoop - introViewportWidth + travel;
+        if (progress >= 1) {
+          introAnimating = false;
+          topOffsetRef.current = normalizeOffset(-introViewportWidth * 0.8, topLoop);
+          bottomOffsetRef.current = normalizeOffset(-bottomLoop + introViewportWidth * 0.8, bottomLoop);
+        }
+      } else {
+        const isMobile = window.innerWidth < 640;
+        const normal = isMobile ? 36 : 48;
+        const slow = normal * 0.38;
+        const hovered = hoveredToolRef.current;
+        const topTarget = hovered?.startsWith("top-") ? 0 : rowHoverTopRef.current ? slow : normal;
+        const bottomTarget = hovered?.startsWith("bottom-") ? 0 : rowHoverBottomRef.current ? slow : normal;
 
-      const ht = hoveredToolRef.current;
-      const rht = rowHoverTopRef.current;
-      const rhb = rowHoverBottomRef.current;
+        topSpeedRef.current += (topTarget - topSpeedRef.current) * 0.12;
+        bottomSpeedRef.current += (bottomTarget - bottomSpeedRef.current) * 0.12;
+        if (Math.abs(topTarget - topSpeedRef.current) < 0.15) topSpeedRef.current = topTarget;
+        if (Math.abs(bottomTarget - bottomSpeedRef.current) < 0.15) bottomSpeedRef.current = bottomTarget;
 
-      let topTarget;
-      if (ht?.startsWith("top-")) topTarget = 0;
-      else if (rht) topTarget = slow;
-      else topTarget = normal;
-
-      let bottomTarget;
-      if (ht?.startsWith("bottom-")) bottomTarget = 0;
-      else if (rhb) bottomTarget = slow;
-      else bottomTarget = normal;
-
-      topSpeedRef.current += (topTarget - topSpeedRef.current) * 0.12;
-      bottomSpeedRef.current += (bottomTarget - bottomSpeedRef.current) * 0.12;
-      if (Math.abs(topTarget - topSpeedRef.current) < 0.15) topSpeedRef.current = topTarget;
-      if (Math.abs(bottomTarget - bottomSpeedRef.current) < 0.15) bottomSpeedRef.current = bottomTarget;
-
-      const topLoop = getLoopWidth(topEl);
-      const bottomLoop = getLoopWidth(bottomEl);
-
-      topOffsetRef.current -= topSpeedRef.current * dt;
-      if (topOffsetRef.current <= -topLoop) topOffsetRef.current += topLoop;
-      if (topOffsetRef.current > 0) topOffsetRef.current -= topLoop;
-      topEl.style.transform = `translate3d(${topOffsetRef.current}px,0,0)`;
-
-      bottomOffsetRef.current += bottomSpeedRef.current * dt;
-      if (bottomOffsetRef.current >= 0) bottomOffsetRef.current -= bottomLoop;
-      if (bottomOffsetRef.current < -bottomLoop) bottomOffsetRef.current += bottomLoop;
-      bottomEl.style.transform = `translate3d(${bottomOffsetRef.current}px,0,0)`;
-
+        topOffsetRef.current = normalizeOffset(topOffsetRef.current - topSpeedRef.current * dt, topLoop);
+        bottomOffsetRef.current = normalizeOffset(bottomOffsetRef.current + bottomSpeedRef.current * dt, bottomLoop);
+      }
+      applyTransforms();
       rafRef.current = requestAnimationFrame(tick);
     };
-    rafRef.current = requestAnimationFrame(tick);
+
+    let observer;
+    if (prefersReduced) {
+      introStartedRef.current = true;
+    } else if (typeof IntersectionObserver === "undefined") {
+      startInitialPass();
+    } else {
+      observer = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        startInitialPass();
+      }, { threshold: 0, rootMargin: "0px 0px -10% 0px" });
+      observer.observe(section);
+    }
+
+    const onResize = () => init();
+    window.addEventListener("resize", onResize);
     return () => {
-      cancelAnimationFrame(rafRef.current);
+      observer?.disconnect();
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
       window.removeEventListener("resize", onResize);
       lastTimeRef.current = null;
     };
@@ -971,7 +1124,7 @@ function ToolsMarquee() {
 
   if (!tools.length) {
     return (
-      <section id="tools" className="relative bg-[#0a0404] border-b border-white/[0.06] pt-[72px] lg:pt-[128px] pb-16 lg:pb-24">
+      <section id="tools" className="relative bg-[#0a0404] pt-[72px] lg:pt-[128px] pb-16 lg:pb-24">
         <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
           <p className="text-sm font-mono tracking-[0.16em] text-[#F0F3FF]/70 animate-pulse">LOADING TOOLS...</p>
         </div>
@@ -986,7 +1139,7 @@ function ToolsMarquee() {
   const dupBottom = [...bottomRow, ...bottomRow, ...bottomRow, ...bottomRow];
 
   return (
-    <section id="tools" className="relative bg-[#0a0404] border-b border-white/[0.06] overflow-hidden isolate [transform:translateZ(0)] [backface-visibility:hidden] scroll-mt-[88px] md:scroll-mt-[104px]" style={{ contain: "layout style" }}>
+    <section ref={sectionRef} id="tools" className="relative bg-[#0a0404] overflow-hidden isolate [transform:translateZ(0)] [backface-visibility:hidden] scroll-mt-[88px] md:scroll-mt-[104px]" style={{ contain: "layout style" }}>
       {}
       <div className="relative z-20 mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-[72px] lg:pt-[128px] pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
@@ -1130,6 +1283,7 @@ function ToolsMarquee() {
 
 function WhatCanIDo() {
   const [hovered, setHovered] = useState(null);
+  const reducedMotion = useReducedMotion();
 
   const velocity = useRef({ x: 0, y: 0, t: 0, speed: 0 });
   const pendingTimer = useRef(null);
@@ -1203,7 +1357,7 @@ function WhatCanIDo() {
     setHovered((cur) => (cur === i ? null : i));
   };
 
-  const services = [
+  const skills = [
     {
       num: "01",
       title: "Frontend Development",
@@ -1239,8 +1393,8 @@ function WhatCanIDo() {
   ];
 
   return (
-    <section id="services" className="relative bg-[#0a0404] border-t border-white/[0.06] scroll-mt-[88px] md:scroll-mt-[128px]">
-      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-[96px] lg:pt-[160px] pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
+    <section id="skills" className="relative mt-[112px] lg:mt-[96px] xl:mt-[176px] mb-16 lg:mb-[208px] xl:mb-[224px] bg-[#0a0404] scroll-mt-[76px] md:scroll-mt-[92px]">
+      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pt-6 lg:pt-8 pb-6 lg:pb-8 flex flex-col items-center text-center gap-5">
         <div className="flex flex-col items-center">
           <Reveal as="p" variant="fade" className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-white/60 uppercase flex items-center justify-center gap-2">
             <svg data-section-icon="hexagon" aria-hidden="true" viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-[#7AB8E8]">
@@ -1254,15 +1408,23 @@ function WhatCanIDo() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%] pb-16 lg:pb-[208px] xl:pb-[224px]">
+      <div className="mx-auto max-w-[1840px] px-[3.2%] md:px-[1.6%] lg:px-[1%]">
         {}
         <div className="border-t border-white/[0.28]" onMouseMove={recordMove}>
-          {services.map((item, i) => {
+          {skills.map((item, i) => {
             const isHovered = hovered === i;
             return (
               <motion.div
                 key={item.num}
                 data-svc-row={item.num}
+                initial={reducedMotion ? false : { opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+                transition={reducedMotion ? { duration: 0 } : {
+                  duration: 0.8,
+                  delay: i * 0.12,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
                 onHoverStart={() => openRow(i)}
                 onHoverEnd={handleRowEnd}
                 onFocus={() => openRow(i)}
@@ -1539,7 +1701,7 @@ function WorkProcess() {
         <div className="flex flex-col items-center">
           <Reveal as="p" variant="fade" className="text-[14px] lg:text-[15px] font-mono font-semibold tracking-[0.16em] text-[#F0F3FF]/85 uppercase flex items-center justify-center gap-2">
             <svg data-section-icon="star-four" aria-hidden="true" viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-[#7AB8E8]">
-              <path d="M12 1C13.7 7.3 16.7 10.3 23 12 16.7 13.7 13.7 16.7 12 23 10.3 16.7 7.3 13.7 1 12 7.3 10.3 10.3 7.3 12 1Z" />
+              <path d="M12 1C13.2 7 15 8.8 23 12 15 15.2 13.2 17 12 23 10.8 17 9 15.2 1 12 9 8.8 10.8 7 12 1Z" />
             </svg>
             How I Work
           </Reveal>
@@ -1596,8 +1758,8 @@ function StepCard({ s, i, progress, scrub, reduced }) {
       <motion.article
         initial={reduced ? { opacity: 0 } : { y: 48, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.25 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: reduced ? 0 : i * 0.12 }}
+        viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: reduced ? 0 : i * 0.12 }}
         className="group relative rounded-[20px] bg-[#171414] border border-white/[0.08] p-5 lg:p-6 flex flex-col hover:border-white/[0.16] transition-colors duration-300"
       >
         <CardBody s={s} />

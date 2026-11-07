@@ -77,7 +77,7 @@ export default function useReveal({ immediate = false, waitForImages = false } =
             reveal();
           }
         },
-        { threshold: 0.15, rootMargin: "0px 0px -5% 0px" }
+        { threshold: 0.1, rootMargin: "0px 0px -10% 0px" }
       );
       observer.observe(element);
     }
